@@ -16,8 +16,28 @@ export class UsersService {
     return { accessToken, refreshToken };
   }
 
+  async getUserById(id: string) {
+    return this.prisma.user.findUnique({
+      where: { id },
+    });
+  }
+
+  async getUserByEmail(email: string) {
+    return this.prisma.user.findUnique({
+      where: { email },
+    });
+  }
+
   async login(dto: UserDto) {
-    const user = await this.prisma.findOne({ email: dto.email });
+    const user = await this.prisma.user.count();
+    // .user.findOne({ email: dto.email });
+
+    return user;
+  }
+  async createUser(dto: UserDto) {
+    const user = await this.prisma.user.create({});
+    // .user.findOne({ email: dto.email });
+
     return user;
   }
 }
