@@ -11,48 +11,40 @@ import { AuthDto } from './dto/auth.dto';
 import { verify } from 'argon2';
 import { Response } from 'express';
 import { CLIENT_DOMAIN } from 'src/main';
+import { PrismaService } from 'src/prisma.service';
 @Injectable()
 export class AuthService {
   EXPIRE_DAY_REFRESH_TOKEN = 1;
   REFRESH_TOKEN_NAME = 'refreshToken';
+  maxAge = 1 * 24 * 60 * 60 * 1000;
   constructor(
     private jwt: JwtService,
     private userService: UsersService,
+    private prisma: PrismaService,
   ) {}
   private generateToken(userId: string) {
     const data = { id: userId };
-    const accessToken = this.jwt.sign(data, { expiresIn: '1h' });
+    const accessToken = this.jwt.sign(data, { expiresIn: '2h' });
     const refreshToken = this.jwt.sign(data, { expiresIn: '7d' });
     return { accessToken, refreshToken };
   }
-  async generateNewTokens(refreshToken: string) {
-    const result = await this.jwt.verifyAsync(refreshToken);
-    if (!result) throw new UnauthorizedException('Invalid refresh token');
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...user } = await this.userService.getUserById(result.id);
-    const tokens = this.generateToken(user.id);
-    return { user, ...tokens };
-  }
-  addRefreshTokenToResponse(res: Response, refreshToken: string) {
-    const expiresIn = new Date();
-    expiresIn.setDate(expiresIn.getDate() + this.EXPIRE_DAY_REFRESH_TOKEN);
-    res.cookie(this.REFRESH_TOKEN_NAME, refreshToken, {
-      httpOnly: true,
-      domain: CLIENT_DOMAIN,
-      expires: expiresIn,
-      secure: true, // secure if production
-      sameSite: 'none', //lax if production
+
+  async checkAndSaveRefreshToken(userId: string, refreshToken: string) {
+    const existingRefreshToken = await this.prisma.token.findUnique({
+      where: { user: userId },
     });
-  }
-  removeRefreshTokenFromResponse(res: Response) {
-    res.cookie(this.REFRESH_TOKEN_NAME, '', {
-      httpOnly: true,
-      // domain: CLIENT_DOMAIN,
-      maxAge: 1 * 24 * 60 * 60 * 1000, // 1 days
-      // expires: new Date(0),
-      secure: true, // secure if production
-      sameSite: 'none', //lax if production
-    });
+
+    if (existingRefreshToken) {
+      existingRefreshToken.refreshToken = refreshToken;
+      return await this.prisma.token.update({
+        where: { id: existingRefreshToken.id },
+        data: { refreshToken },
+      });
+    } else {
+      return await this.prisma.token.create({
+        data: { user: userId, refreshToken: refreshToken },
+      });
+    }
   }
 
   private async validateUser(dto: AuthDto) {
@@ -77,3 +69,34 @@ export class AuthService {
     return { user, ...tokens };
   }
 }
+
+// removeRefreshTokenFromResponse(res: Response) {
+//   res.cookie(this.REFRESH_TOKEN_NAME, '', {
+//     httpOnly: true,
+//     domain: CLIENT_DOMAIN,
+//     maxAge: this.maxAge,
+//     // expires: new Date(0),
+//     secure: true, // secure if production
+//     sameSite: 'none', //lax if production
+//   });
+// }
+// addRefreshTokenToResponse(res: Response, refreshToken: string) {
+//   const expiresIn = new Date();
+//   expiresIn.setDate(expiresIn.getDate() + this.EXPIRE_DAY_REFRESH_TOKEN);
+//   res.cookie(this.REFRESH_TOKEN_NAME, refreshToken, {
+//     httpOnly: true,
+//     domain: CLIENT_DOMAIN,
+//     maxAge: this.maxAge,
+//     // expires: expiresIn,
+//     secure: true, // secure if production
+//     sameSite: 'none', //lax if production
+//   });
+// }
+// async generateNewTokens(refreshToken: string) {
+//   const result = await this.jwt.verifyAsync(refreshToken);
+//   if (!result) throw new UnauthorizedException('Invalid refresh token');
+//   // eslint-disable-next-line @typescript-eslint/no-unused-vars
+//   const { password, ...user } = await this.userService.getUserById(result.id);
+//   const tokens = this.generateToken(user.id);
+//   return { user, ...tokens };
+// }
