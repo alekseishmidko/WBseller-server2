@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserDto } from './dto/users.dto';
 import { PrismaService } from 'src/prisma.service';
+import { hash } from 'argon2';
+import { AuthDto } from 'src/auth/dto/auth.dto';
 
 @Injectable()
 export class UsersService {
@@ -9,12 +11,6 @@ export class UsersService {
     private jwt: JwtService,
     private prisma: PrismaService,
   ) {}
-  private generateToken(userId: string) {
-    const data = { id: userId };
-    const accessToken = this.jwt.sign(data, { expiresIn: '1h' });
-    const refreshToken = this.jwt.sign(data, { expiresIn: '7d' });
-    return { accessToken, refreshToken };
-  }
 
   async getUserById(id: string) {
     return this.prisma.user.findUnique({
@@ -28,16 +24,18 @@ export class UsersService {
     });
   }
 
-  async login(dto: UserDto) {
-    const user = await this.prisma.user.count();
-    // .user.findOne({ email: dto.email });
-
-    return user;
-  }
-  async createUser(dto: UserDto) {
-    const user = await this.prisma.user.create({});
-    // .user.findOne({ email: dto.email });
-
-    return user;
+  async createUser(dto: AuthDto) {
+    const user = {
+      email: dto.email,
+      name: dto.name,
+      password: await hash(dto.password),
+      key: +Date.now(),
+      // role: 'user',
+      // status: 'disabled',
+      // balance: 2,
+      // tariff: 'Новый пользователь',
+      // chatId: 0,
+    };
+    return this.prisma.user.create({ data: user });
   }
 }

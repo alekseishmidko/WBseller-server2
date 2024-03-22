@@ -9,8 +9,9 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto/auth.dto';
+import { Response } from 'express';
 
-@Controller('auth')
+@Controller('auth/')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
@@ -18,9 +19,7 @@ export class AuthController {
   @HttpCode(200)
   @Post('login')
   async login(@Body() dto: AuthDto, @Res({ passthrough: true }) res: Response) {
-    const { refreshToken, ...response } = await this.authService.login(dto);
-    this.authService.addRefreshTokenToResponse(res, refreshToken);
-    return response;
+    return this.authService.login(dto, res);
   }
 
   @UsePipes(new ValidationPipe())
@@ -30,8 +29,6 @@ export class AuthController {
     @Body() dto: AuthDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const { refreshToken, ...response } = await this.authService.login(dto);
-    this.authService.addRefreshTokenToResponse(res, refreshToken);
-    return response;
+    return this.authService.register(dto, res);
   }
 }
