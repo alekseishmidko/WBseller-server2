@@ -38,4 +38,10 @@ export class UsersService {
     };
     return this.prisma.user.create({ data: user });
   }
+
+  async getCurrent(id: string) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...user } = await this.getUserById(id);
+    return user;
+  }
 }

@@ -13,21 +13,24 @@ import {
 import { UsersService } from './users.service';
 import { UserDto } from './dto/users.dto';
 import { Request, Response } from 'express';
+import { Auth } from 'src/auth/decorators/auth.decorator';
+import { CurrentUser } from 'src/auth/decorators/user.decorator';
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post()
-  async register() {}
+  @HttpCode(200)
+  @Auth()
+  @Get('current')
+  async current(@CurrentUser('id') id: string) {
+    return this.usersService.getCurrent(id);
+  }
 
   @Post()
   async logout() {}
 
   @Get()
   async refresh() {}
-
-  @Get()
-  async current() {}
 
   @Get()
   async getAllUsers() {}

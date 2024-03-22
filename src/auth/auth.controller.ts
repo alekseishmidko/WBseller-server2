@@ -1,17 +1,19 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   Post,
+  Req,
   Res,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto/auth.dto';
-import { Response } from 'express';
+import { Response, Request } from 'express';
 
-@Controller('auth/')
+@Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
@@ -30,5 +32,20 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     return this.authService.register(dto, res);
+  }
+
+  @HttpCode(200)
+  @Get('refresh')
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.authService.refresh(req, res);
+  }
+
+  @HttpCode(200)
+  @Post('logout')
+  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    return this.authService.logout(req, res);
   }
 }

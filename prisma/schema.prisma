@@ -7,8 +7,6 @@ datasource db {
   url      = env("MONGO_DB_URL")
 }
 
-
-
 model User {
  id      String   @id @default(auto()) @map("_id") @db.ObjectId
   name      String
@@ -22,6 +20,8 @@ model User {
   balance   Int      @default(2) 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  token  Token[]
 }
 enum UserStatuses {
      active 
@@ -30,4 +30,11 @@ enum UserStatuses {
 enum UserRoles {
     user 
     admin
+}
+
+model Token {
+  id      String   @id @default(auto()) @map("_id") @db.ObjectId
+  refreshToken   String @unique
+  user   User   @relation(fields: [userId], references: [id],  onDelete: Cascade) 
+  userId   String  
 }
