@@ -70,8 +70,8 @@ export class AuthService {
     return user;
   }
   async login(dto: AuthDto, res: Response) {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...user } = await this.validateUser(dto);
+    const user = await this.validateUser(dto);
+    delete user.password;
     const tokens = this.generateToken(user.id);
     await this.checkAndSaveRefreshToken(user.id, tokens.refreshToken);
     const userData = { ...user, accessToken: tokens.accessToken };
@@ -82,11 +82,12 @@ export class AuthService {
   async register(dto: AuthDto, res: Response) {
     const existedUser = await this.usersService.getUserByEmail(dto.email);
     if (existedUser) throw new BadRequestException('email is exiting yet!');
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...user } = await this.usersService.createUser(dto);
+    const user = await this.usersService.createUser(dto);
+    delete user.password;
     const tokens = this.generateToken(user.id);
     await this.checkAndSaveRefreshToken(user.id, tokens.refreshToken);
-    const userData = { ...user, accessToken: tokens.accessToken };
+    const userData = { user, accessToken: tokens.accessToken };
+
     this.addRefreshTokenToResponse(res, tokens.refreshToken);
 
     return { userData };
