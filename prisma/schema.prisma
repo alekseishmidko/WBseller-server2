@@ -15,7 +15,7 @@ model User {
   key       Int       
   chatId    Int      @default(0)
   role      UserRoles   @default(user)
-  status    UserStatuses   @default(active)
+  status    UserStatuses   @default(disabled)
   tariff    String   @default("Новый пользователь")
   balance   Int      @default(2) 
   createdAt DateTime @default(now())
