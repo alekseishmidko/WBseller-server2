@@ -49,7 +49,10 @@ export class UsersService {
     return user;
   }
   async deleteRefreshToken(userId: string) {
-    return this.prisma.token.deleteMany({ where: { user: userId } });
+    return this.prisma.token.deleteMany({
+      where: { userId: userId },
+      // select: { user: userId },
+    });
   }
 
   async getAllUsers(req: Request, role: string) {

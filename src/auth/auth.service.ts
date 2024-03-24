@@ -45,7 +45,7 @@ export class AuthService {
 
   async checkAndSaveRefreshToken(userId: string, refreshToken: string) {
     const existingRefreshToken = await this.prisma.token.findFirst({
-      where: { user: userId },
+      where: { userId: userId },
     });
 
     if (existingRefreshToken) {
@@ -56,7 +56,7 @@ export class AuthService {
       });
     } else {
       return await this.prisma.token.create({
-        data: { user: userId, refreshToken: refreshToken },
+        data: { userId: userId, refreshToken: refreshToken },
       });
     }
   }

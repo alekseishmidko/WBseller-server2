@@ -22,6 +22,7 @@ model User {
   updatedAt DateTime @updatedAt
 
   token  Token[]
+  seller Seller[]
 }
 enum UserStatuses {
      active 
@@ -35,6 +36,23 @@ enum UserRoles {
 model Token {
   id      String   @id @default(auto()) @map("_id") @db.ObjectId
   refreshToken   String @unique
-  user   User   @relation(fields: [userId], references: [id],  onDelete: Cascade) 
-  userId   String  
+  user   User   @relation(fields: [userId], references: [id]) 
+  userId   String 
+}
+
+model Seller {
+    id      String   @id @default(auto()) @map("_id") @db.ObjectId
+    sellerWBtoken String 
+    sellerName  String
+    taxingPercent Int
+    taxingType TaxCategories 
+    user   User   @relation(fields: [userId], references: [id]) 
+    userId   String
+}
+
+enum TaxCategories {
+totalRetailAmountFromSales  //{ title: "Продано ВБ", index: "27", value: "totalRetailAmountFromSales" },
+transferForTrades // { title: "К перечислению за товар", index: "28", value: "transferForTrades" },
+toBePaid// { title: "Итого к оплате", index: "40", value: "toBePaid" },
+grossProfit // { title: "Валовая прибыль", index: "43", value: "grossProfit" }, 
 }

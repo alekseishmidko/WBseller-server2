@@ -82,7 +82,6 @@ export class UsersController {
   @Get('activate')
   async activate(
     @Req() req: Request,
-
     @CurrentUser('status') status: string,
     @CurrentUser('email') email: string,
     @CurrentUser('id') userId: string,
