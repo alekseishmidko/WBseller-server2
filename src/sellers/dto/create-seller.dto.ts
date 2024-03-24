@@ -1,4 +1,5 @@
-import { IsNumber, IsString, MinLength } from 'class-validator';
+import { TaxCategories } from '@prisma/client';
+import { IsEnum, IsNumber, IsString, MinLength } from 'class-validator';
 
 export class CreateSellerDto {
   @IsString()
@@ -10,8 +11,11 @@ export class CreateSellerDto {
   @IsString()
   sellerWBtoken: string;
 
-  @IsString()
-  taxingType: string;
+  // @IsString()
+  // taxingType: string;
+
+  @IsEnum(TaxCategories)
+  taxingType: TaxCategories;
 
   @IsNumber()
   taxingPercent: number;

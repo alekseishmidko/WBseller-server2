@@ -6,6 +6,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma.service';
 import { CreateSellerDto } from './dto/create-seller.dto';
+import { EditSellerDto } from './dto/edit-seller.dto';
 
 @Injectable()
 export class SellersService {
@@ -43,4 +44,17 @@ export class SellersService {
 
     return { message: 'Seller is created!' };
   }
+
+  async getAllUserSellers(userId: string) {
+    const allSellers = await this.prisma.seller.findMany({
+      where: { userId },
+    });
+    if (!allSellers) throw new BadRequestException(` Dont find a sellers!`);
+
+    console.log(allSellers);
+  }
+
+  async editSeller(dto: EditSellerDto, userId: string) {}
+  async deleteSeller(id: string) {}
+  async getOneUserSeller(id: string) {}
 }
