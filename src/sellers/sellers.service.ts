@@ -1,9 +1,7 @@
 import {
+  BadGatewayException,
   BadRequestException,
-  ExecutionContext,
   Injectable,
-  InternalServerErrorException,
-  Req,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma.service';
@@ -18,12 +16,11 @@ export class SellersService {
   ) {}
 
   async sellerMiddleware(req: Request, userId: string) {
-    // console.log(req.query, req.params, userId);
-
     const sellerId = req.query.sellerId as string; // || req.params;
     const seller = await this.getSellerById(sellerId);
-    if (!seller) throw new BadRequestException(`Dont find a seller!`);
-    // console.log(seller);
+    if (!seller) return false;
+    if (seller.userId !== userId) return false;
+    return true;
   }
   async getSellerById(id: string) {
     return await this.prisma.seller.findUnique({ where: { id } });
@@ -68,8 +65,49 @@ export class SellersService {
   }
 
   async editSeller(dto: EditSellerDto, userId: string, req: Request) {
-    this.sellerMiddleware(req, userId);
+    const isSeller = await this.sellerMiddleware(req, userId);
+    if (!isSeller)
+      throw new BadRequestException(
+        `Unauthorized! Seller ID does not match the user ID.`,
+      );
+
+    const sellerId = req.query.sellerId as string; // || req.params;
+    const updatedSeller = await this.prisma.seller.update({
+      where: { id: sellerId },
+      data: { ...dto },
+    });
+
+    if (!updatedSeller)
+      throw new BadGatewayException('Failed to update seller info!');
+    return { message: 'Seller is successfully updated' };
   }
-  async deleteSeller(id: string) {}
-  async getOneUserSeller(id: string) {}
+  async deleteSeller(id: string, userId: string, req: Request) {
+    const isSeller = await this.sellerMiddleware(req, userId);
+    if (!isSeller)
+      throw new BadRequestException(
+        `Unauthorized! Seller ID does not match the user ID.`,
+      );
+
+    const deletedSeller = await this.prisma.seller.delete({ where: { id } });
+    if (!deletedSeller)
+      throw new BadGatewayException('Failed to delete seller!');
+    return { message: 'Seller is successfully deleted!' };
+  }
+  async getOneUserSeller(
+    id: string,
+    userId: string,
+    req: Request,
+    userEmail: string,
+  ) {
+    const isSeller = await this.sellerMiddleware(req, userId);
+    if (!isSeller)
+      throw new BadRequestException(
+        `Unauthorized! Seller ID does not match the user ID.`,
+      );
+
+    const seller = await this.getSellerById(id);
+    if (!seller) throw new BadRequestException('Dont find a seller!');
+
+    return { seller, masterEmail: userEmail };
+  }
 }

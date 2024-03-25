@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Delete,
-  ExecutionContext,
   Get,
   HttpCode,
   Param,
@@ -15,10 +14,8 @@ import { Auth } from 'src/auth/decorators/auth.decorator';
 import { CreateSellerDto } from './dto/create-seller.dto';
 import { CurrentUser } from 'src/auth/decorators/user.decorator';
 import { EditSellerDto } from './dto/edit-seller.dto';
-import { SellerAuth } from './decorator/seller.decorator';
+
 import { Request } from 'express';
-import { Auth2 } from 'src/auth/guards/auth2.guard';
-import { Auth2Guard } from 'src/auth/decorators/auth2.decorator';
 
 @Controller('sellers')
 export class SellersController {
@@ -41,8 +38,6 @@ export class SellersController {
   }
 
   @Auth()
-  // @Auth2Guard()
-  // @SellerAuth()
   @Patch()
   async editSeller(
     @Body() dto: EditSellerDto,
@@ -54,18 +49,22 @@ export class SellersController {
 
   @Auth()
   @Delete(':id')
-  // SellerAuth
-  async deleteSeller(@Param('id') id: string) {
-    return this.sellersService.deleteSeller(id);
+  async deleteSeller(
+    @Param('id') id: string,
+    @CurrentUser('id') userId: string,
+    @Req() req: Request,
+  ) {
+    return this.sellersService.deleteSeller(id, userId, req);
   }
 
   @Auth()
   @Get(':id')
-  // SellerAuth
   async getOneUserSeller(
     @Param('id') id: string,
-    // @CurrentUser('id') userId: string,
+    @CurrentUser('id') userId: string,
+    @Req() req: Request,
+    @CurrentUser('email') userEmail: string,
   ) {
-    return this.sellersService.getOneUserSeller(id);
+    return this.sellersService.getOneUserSeller(id, userId, req, userEmail);
   }
 }
