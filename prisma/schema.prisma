@@ -8,51 +8,150 @@ datasource db {
 }
 
 model User {
- id      String   @id @default(auto()) @map("_id") @db.ObjectId
+  id        String       @id @default(auto()) @map("_id") @db.ObjectId
   name      String
-  email     String   @unique
+  email     String       @unique
   password  String
-  key       Int       
-  chatId    Int      @default(0)
-  role      UserRoles   @default(user)
-  status    UserStatuses   @default(disabled)
-  tariff    String   @default("Новый пользователь")
-  balance   Int      @default(2) 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  key       Int
+  chatId    Int          @default(0)
+  role      UserRoles    @default(user)
+  status    UserStatuses @default(disabled)
+  tariff    String       @default("Новый пользователь")
+  balance   Int          @default(2)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
 
-  token  Token[]
-  seller Seller[]
+  token   Token[]
+  seller  Seller[]
+  payment Payment[]
 }
+
 enum UserStatuses {
-     active 
-     disabled
+  active
+  disabled
 }
+
 enum UserRoles {
-    user 
-    admin
+  user
+  admin
 }
 
 model Token {
-  id      String   @id @default(auto()) @map("_id") @db.ObjectId
-  refreshToken   String @unique
-  user   User   @relation(fields: [userId], references: [id]) 
-  userId   String 
+  id           String @id @default(auto()) @map("_id") @db.ObjectId
+  refreshToken String @unique
+  user         User   @relation(fields: [userId], references: [id])
+  userId       String @db.ObjectId
 }
 
 model Seller {
-    id      String   @id @default(auto()) @map("_id") @db.ObjectId
-    sellerWBtoken String 
-    sellerName  String
-    taxingPercent Int
-    taxingType TaxCategories 
-    user   User   @relation(fields: [userId], references: [id]) 
-    userId   String
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
+  sellerWBtoken String
+  sellerName    String
+  taxingPercent Int
+  taxingType    TaxCategories
+  user          User          @relation(fields: [userId], references: [id])
+  userId        String        @db.ObjectId
+
+  goods  Good[]
+  report Report[]
 }
 
 enum TaxCategories {
-totalRetailAmountFromSales  //{ title: "Продано ВБ", index: "27", value: "totalRetailAmountFromSales" },
-transferForTrades // { title: "К перечислению за товар", index: "28", value: "transferForTrades" },
-toBePaid// { title: "Итого к оплате", index: "40", value: "toBePaid" },
-grossProfit // { title: "Валовая прибыль", index: "43", value: "grossProfit" }, 
+  totalRetailAmountFromSales //{ title: "Продано ВБ", index: "27", value: "totalRetailAmountFromSales" },
+  transferForTrades // { title: "К перечислению за товар", index: "28", value: "transferForTrades" },
+  toBePaid // { title: "Итого к оплате", index: "40", value: "toBePaid" },
+  grossProfit // { title: "Валовая прибыль", index: "43", value: "grossProfit" }, 
+}
+
+model Good {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  sa_name  String
+  ts_name  String
+  price    Int
+  seller   Seller @relation(fields: [sellerId], references: [id])
+  sellerId String @db.ObjectId
+}
+
+model Payment {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  paymentId String @unique
+  amount    Int
+  currency  String
+  createdAt String
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @db.ObjectId
+}
+
+model Report {
+  seller                                  Seller                 @relation(fields: [sellerId], references: [id])
+  sellerId                                String                 @db.ObjectId
+  id                                      String                 @id @default(auto()) @map("_id") @db.ObjectId
+  realizationreport_id                    String
+  dateFrom                                String
+  dateTo                                  String
+  allSalesBeforeFeeTotalPrice             Int //1
+  allSalesBeforeFeeLength                 Int //2
+  allReturnsBeforeFeeTotalPrice           Int //3
+  allReturnsBeforeFeeLength               Int //4
+  allSalesAfterFee                        Int //5
+  allReturnsAfterFee                      Int //6
+  comission                               Int //7
+  percentOfComission                      Int //8 
+  paymentOfDefectedGoods                  Int //9
+  quantityOfDefectiveGoods                Int //10
+  paymentOfLostGoods                      Int //11
+  quantityOfLostGoods                     Int //12
+  compensationSubstitutedGoods            Int //13
+  quantityOfSubstitutedGoods              Int //14
+  compensationOfTransportationCosts       Int //15
+  compensationOfTransportationCostsAmount Int //16
+  stornoOfTrades                          Int //17
+  quantityOfStornoOfTrades                Int //18
+  correctTrades                           Int //19
+  quantityOfCorrectTrades                 Int //20
+  stornoOfReturns                         Int //21
+  stornoOfReturnsAmount                   Int //22
+  correctOfReturns                        Int //23
+  correctOfReturnsAmount                  Int //24
+  totalCorrect                            Int //25
+  totalRetailAmountFromSales              Int //27
+  transferForTrades                       Int //28
+  logistics                               Int //29
+  returnLogistics                         Int //31
+  // totalLogistics  Int  // 33
+  totalLogisticsCount                     Int //34
+  totalPenalty                            Int //35
+  totalAdditionalPayment                  Int //36
+
+  totalKeeping                            Int //37
+  paidAcceptance                          Int //38
+  otherDeductions                         Int //39
+  toBePaid                                Int //40 (без вычета 37, 38, 39)
+  percentOfBuyBack                        Int
+  totalSalesAndReturnsLength              Int
+  downloadLink                            String
+  countSalesBySA                          CountSalesBySASchema[]
+}
+
+model CountSalesBySASchema {
+  id                                     String  @id @default(auto()) @map("_id") @db.ObjectId
+  nm_id                                  Int
+  sa_name                                String
+  ts_name                                String
+  totalSales                             Int
+  totalSalesCount                        Int
+  price                                  Int
+  returnsTotalPrice                      Int
+  returnsCount                           Int
+  logisticsTotalPrice                    Int
+  returnLogisticsTotalPrice              Int
+  feeTotalPrice                          Int
+  defectedGoodsTotalPrice                Int
+  defectedGoodsCount                     Int
+  lostGoodsTotalPrice                    Int
+  substitutedGoodsTotalPrice             Int
+  compensationOfTransportationTotalPrice Int
+  Report                                 Report? @relation(fields: [reportId], references: [id])
+  reportId                               String? @db.ObjectId
 }

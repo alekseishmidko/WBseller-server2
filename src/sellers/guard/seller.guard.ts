@@ -13,26 +13,28 @@ export class SellerGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest();
-    const userId = req.user._id;
-    const sellerId = req.query.sellerId || req.params.id;
+    console.log(req.query, req.params, req.user);
 
-    const seller = await this.prisma.seller.findUnique({
-      where: {
-        id: sellerId,
-      },
-    });
+    //   const userId = req.user._id;
+    //   const sellerId = req.query.sellerId || req.params.id;
 
-    if (!seller) {
-      throw new NotFoundException(`Seller not found`);
-    }
+    //   const seller = await this.prisma.seller.findUnique({
+    //     where: {
+    //       id: sellerId,
+    //     },
+    //   });
 
-    if (seller.userId !== userId) {
-      throw new BadRequestException(
-        `Unauthorized! Seller ID does not match the user ID.`,
-      );
-    }
+    //   if (!seller) {
+    //     throw new NotFoundException(`Seller not found`);
+    //   }
 
-    req.seller = seller;
+    //   if (seller.userId !== userId) {
+    //     throw new BadRequestException(
+    //       `Unauthorized! Seller ID does not match the user ID.`,
+    //     );
+    //   }
+
+    //   req.seller = seller;
     return true;
   }
 }

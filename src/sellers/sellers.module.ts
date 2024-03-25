@@ -6,6 +6,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma.service';
 import { SellersController } from './sellers.controller';
 import { SellersService } from './sellers.service';
+import { UsersService } from 'src/users/users.service';
 
 @Module({
   imports: [
@@ -17,7 +18,7 @@ import { SellersService } from './sellers.service';
     }),
   ],
   controllers: [SellersController],
-  providers: [SellersService, PrismaService],
+  providers: [SellersService, PrismaService, UsersService],
   exports: [SellersService],
 })
 export class SellersModule {}
