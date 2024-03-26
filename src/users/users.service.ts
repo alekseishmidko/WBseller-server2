@@ -9,6 +9,8 @@ import { hash } from 'argon2';
 import { AuthDto } from 'src/auth/dto/auth.dto';
 import { Request } from 'express';
 import { EditUserInfoDto, EditUserPasswordDto } from './dto/edit-user.dto';
+import { PeriodType } from 'src/types/report-types';
+import { getQuantityOfBalance } from 'src/helpers/balance/balance';
 @Injectable()
 export class UsersService {
   constructor(
@@ -41,6 +43,32 @@ export class UsersService {
       // chatId: 0,
     };
     return this.prisma.user.create({ data: user });
+  }
+
+  async incrementUserBalance(id: string, number: number) {
+    await this.prisma.user.update({
+      where: { id },
+      data: { balance: { increment: number } },
+    });
+  }
+  async decrementUserBalance(
+    id: string,
+    currentBalance: number,
+    period: PeriodType,
+  ) {
+    const count = getQuantityOfBalance(period.dateFrom, period.dateTo);
+    const newBalance = currentBalance - count;
+    await this.prisma.user.update({
+      where: { id },
+      data: { balance: newBalance <= 0 ? 0 : newBalance },
+    });
+  }
+
+  async updateUserTariff(id: string, newTariffName: string) {
+    return this.prisma.user.update({
+      where: { id },
+      data: { tariff: newTariffName },
+    });
   }
 
   async getCurrent(id: string) {
