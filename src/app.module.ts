@@ -7,6 +7,8 @@ import { AuthModule } from './auth/auth.module';
 import { SellersModule } from './sellers/sellers.module';
 import { GoodsModule } from './goods/goods.module';
 import { PaymentModule } from './payment/payment.module';
+import { BotModule } from './bot/bot.module';
+import { PromoModule } from './promo/promo.module';
 
 @Module({
   imports: [
@@ -16,6 +18,8 @@ import { PaymentModule } from './payment/payment.module';
     SellersModule,
     GoodsModule,
     PaymentModule,
+    BotModule,
+    PromoModule,
   ],
   controllers: [AppController],
   providers: [AppService],

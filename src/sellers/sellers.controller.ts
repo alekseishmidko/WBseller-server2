@@ -8,6 +8,8 @@ import {
   Patch,
   Post,
   Req,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { SellersService } from './sellers.service';
 import { Auth } from 'src/auth/decorators/auth.decorator';
@@ -23,6 +25,7 @@ export class SellersController {
 
   @Auth()
   @HttpCode(200)
+  @UsePipes(new ValidationPipe())
   @Post()
   async createUserSeller(
     @Body() dto: CreateSellerDto,
@@ -39,6 +42,7 @@ export class SellersController {
 
   @Auth()
   @Patch()
+  @UsePipes(new ValidationPipe())
   async editSeller(
     @Body() dto: EditSellerDto,
     @CurrentUser('id') userId: string,

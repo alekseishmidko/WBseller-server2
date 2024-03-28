@@ -8,6 +8,8 @@ import {
   Patch,
   Post,
   Req,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { GoodsService } from './goods.service';
 import { Auth } from 'src/auth/decorators/auth.decorator';
@@ -26,12 +28,14 @@ export class GoodsController {
   }
 
   @Post()
+  @UsePipes(new ValidationPipe())
   @Auth()
   async createGoods(@Body() dto: CreateGoodsDto, @Req() req: Request) {
     return this.goodsService.createGoods(dto, req);
   }
 
   @Post('many')
+  @UsePipes(new ValidationPipe())
   @HttpCode(200)
   @Auth()
   async createOrUpdateManyGoods(
@@ -42,6 +46,7 @@ export class GoodsController {
   }
 
   @Patch()
+  @UsePipes(new ValidationPipe())
   @Auth()
   async changePriceInGoods(@Body() dto: UpdateGoodsDto) {
     return this.goodsService.changePriceInGoods(dto);

@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { Request } from 'express';
@@ -20,6 +28,7 @@ export class PaymentController {
   }
 
   @Post()
+  @UsePipes(new ValidationPipe())
   @Auth()
   async createPayment(@Body() dto: CreatePaymentDto) {
     return this.paymentService.createPayment(dto);
