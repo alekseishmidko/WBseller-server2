@@ -9,10 +9,13 @@ import { GoodsModule } from './goods/goods.module';
 import { PaymentModule } from './payment/payment.module';
 import { BotModule } from './bot/bot.module';
 import { PromoModule } from './promo/promo.module';
+import { FirebaseModule } from './firebase/firebase.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     UsersModule,
     AuthModule,
     SellersModule,
@@ -20,6 +23,7 @@ import { PromoModule } from './promo/promo.module';
     PaymentModule,
     BotModule,
     PromoModule,
+    FirebaseModule,
   ],
   controllers: [AppController],
   providers: [AppService],
