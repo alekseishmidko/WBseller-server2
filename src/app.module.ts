@@ -10,6 +10,7 @@ import { PaymentModule } from './payment/payment.module';
 import { BotModule } from './bot/bot.module';
 import { PromoModule } from './promo/promo.module';
 import { FirebaseModule } from './firebase/firebase.module';
+import { ReportsModule } from './reports/reports.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { FirebaseModule } from './firebase/firebase.module';
     BotModule,
     PromoModule,
     FirebaseModule,
+    ReportsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
