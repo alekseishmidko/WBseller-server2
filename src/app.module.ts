@@ -9,7 +9,7 @@ import { GoodsModule } from './goods/goods.module';
 import { PaymentModule } from './payment/payment.module';
 import { BotModule } from './bot/bot.module';
 import { PromoModule } from './promo/promo.module';
-import { FirebaseModule } from './helpers/firebase/firebase.module';
+import { FirebaseModule } from './utils/firebase/firebase.module';
 import { ReportsModule } from './reports/reports.module';
 
 @Module({

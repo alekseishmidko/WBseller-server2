@@ -19,13 +19,13 @@ export class UsersService {
   ) {}
 
   async getUserById(id: string) {
-    return await this.prisma.user.findUnique({
+    return await this.prisma.user.findUniqueOrThrow({
       where: { id },
     });
   }
 
   async getUserByEmail(email: string) {
-    return this.prisma.user.findUnique({
+    return this.prisma.user.findUniqueOrThrow({
       where: { email },
     });
   }
@@ -179,4 +179,6 @@ export class UsersService {
       return { message: 'User status is succesfully updated' };
     }
   }
+
+  async balanceAuth() {}
 }
