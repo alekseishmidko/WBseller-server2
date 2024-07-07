@@ -79,7 +79,7 @@ export class AuthService {
 
     return { userData };
   }
-  async register(dto: AuthDto, res: Response) {
+  async register(dto: AuthDto, res: Response) {  
     const existedUser = await this.usersService.getUserByEmail(dto.email);
     if (existedUser) throw new BadRequestException('email is exiting yet!');
     const user = await this.usersService.createUser(dto);
