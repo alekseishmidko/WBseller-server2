@@ -19,13 +19,13 @@ export class UsersService {
   ) {}
 
   async getUserById(id: string) {
-    return await this.prisma.user.findUniqueOrThrow({
+    return await this.prisma.user.findUnique({
       where: { id },
     });
   }
 
   async getUserByEmail(email: string) {
-    return this.prisma.user.findUniqueOrThrow({
+    return this.prisma.user.findUnique({
       where: { email },
     });
   }

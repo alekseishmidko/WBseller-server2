@@ -42,6 +42,7 @@
     "multer": "^1.4.5-lts.1",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
+    "prisma": "^5.16.1",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1"
   },
