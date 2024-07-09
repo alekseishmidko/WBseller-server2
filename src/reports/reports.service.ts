@@ -98,7 +98,7 @@ export class ReportsService {
       dateFrom,
       dateTo,
     );
-    if (!isExistReport)
+    if (isExistReport)
       throw new BadRequestException(
         'You already have a report for this period!',
       );
@@ -109,9 +109,9 @@ export class ReportsService {
     const response = await axios.get(url, {
       headers: { Authorization: wbtokenFromService },
     });
-    // const resData = response.data;
-    // if (!resData) throw new BadGatewayException('WB API is disabled');
-    // return resData;
-    return seller;
+
+    const resData = response.data;
+    if (!resData) throw new BadGatewayException('WB API is disabled');
+    return resData;
   }
 }
