@@ -6,7 +6,6 @@ import {
   HttpCode,
   Param,
   Post,
-  Query,
   Req,
 } from '@nestjs/common';
 import { ReportsService } from './reports.service';

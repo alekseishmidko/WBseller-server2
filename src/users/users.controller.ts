@@ -28,9 +28,9 @@ export class UsersController {
   }
 
   @Get()
-  @Auth()
-  async getAllUsers(@Req() req: Request, @CurrentUser('role') role: string) {
-    return this.usersService.getAllUsers(req, role);
+  @Auth('admin')
+  async getAllUsers(@Req() req: Request) {
+    return this.usersService.getAllUsers(req);
   }
 
   @HttpCode(200)
@@ -56,25 +56,20 @@ export class UsersController {
   }
 
   @HttpCode(200)
-  @Auth()
+  @Auth('admin')
   @Delete(':id')
-  async delete(
-    @Param('id') id: string,
-    @CurrentUser('id') userId: string,
-    @CurrentUser('role') role: string,
-  ) {
-    return this.usersService.deleteUser(id, userId, role);
+  async delete(@Param('id') id: string, @CurrentUser('id') userId: string) {
+    return this.usersService.deleteUser(id, userId);
   }
 
   @HttpCode(200)
-  @Auth()
+  @Auth('admin')
   @Patch(':id')
   async handleStatusUser(
     @Param('id') id: string,
     @CurrentUser('id') userId: string,
-    @CurrentUser('role') role: string,
   ) {
-    return this.usersService.handleStatusUser(id, userId, role);
+    return this.usersService.handleStatusUser(id, userId);
   }
 
   @HttpCode(200)

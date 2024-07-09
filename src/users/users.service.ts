@@ -9,8 +9,9 @@ import { hash } from 'argon2';
 import { AuthDto } from 'src/auth/dto/auth.dto';
 import { Request } from 'express';
 import { EditUserInfoDto, EditUserPasswordDto } from './dto/edit-user.dto';
-import { PeriodType } from 'src/types/report-types';
+
 import { getQuantityOfBalance } from 'src/helpers/balance/balance';
+import { PeriodType } from 'src/types/report.types';
 @Injectable()
 export class UsersService {
   constructor(
@@ -36,7 +37,7 @@ export class UsersService {
       name: dto.name,
       password: await hash(dto.password),
       key: +Date.now(),
-      // role: 'user',
+      // role: 'admin',
       // status: 'disabled',
       // balance: 2,
       // tariff: 'Новый пользователь',
@@ -83,8 +84,7 @@ export class UsersService {
     });
   }
 
-  async getAllUsers(req: Request, role: string) {
-    if (role !== 'admin') throw new BadRequestException('Not authorised');
+  async getAllUsers(req: Request) {
     const page = +req.query.page || 1;
     const limit = +req.query.limit || 10;
     const startIndex = (page - 1) * limit;
@@ -121,8 +121,8 @@ export class UsersService {
     return { message: 'User password is successfully updated' };
   }
 
-  async deleteUser(id: string, userId: string, role: string) {
-    if (role === 'admin' && userId !== id) {
+  async deleteUser(id: string, userId: string) {
+    if (userId !== id) {
       const deletedUser = await this.prisma.user.delete({ where: { id } });
 
       if (!deletedUser)
@@ -134,11 +134,11 @@ export class UsersService {
       throw new BadRequestException('Unauthorized to delete user');
     }
   }
-  async handleStatusUser(id: string, userId: string, role: string) {
+  async handleStatusUser(id: string, userId: string) {
     const findUser = await this.prisma.user.findUnique({ where: { id } });
     if (!findUser)
       throw new BadRequestException('dont find user! (handleStatusUser)');
-    if (role === 'admin' && userId !== id) {
+    if (userId !== id) {
       await this.prisma.user.update({
         where: { id: id },
         data: { status: findUser.status === 'active' ? 'disabled' : 'active' },
@@ -159,7 +159,8 @@ export class UsersService {
     const chatId = +req.query.chatId;
     if (!activate)
       throw new BadRequestException('there is not an activate key');
-    if (status !== 'disabled') throw new BadRequestException('not authorised!');
+    if (status !== 'disabled')
+      throw new BadRequestException('already activated!');
 
     const decoded = this.jwt.verify(activate, {
       secret: process.env.ACCESS_KEY,

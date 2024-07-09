@@ -39,7 +39,7 @@ enum UserRoles {
 model Token {
   id           String @id @default(auto()) @map("_id") @db.ObjectId
   refreshToken String @unique
-  user         User   @relation(fields: [userId], references: [id])
+  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId       String @db.ObjectId
 }
 

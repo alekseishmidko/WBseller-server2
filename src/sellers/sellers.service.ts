@@ -67,6 +67,7 @@ export class SellersService {
   async editSeller(dto: EditSellerDto, userId: string, req: Request) {
     const sellerId = req.query.sellerId as string; // || req.params;
     const isSeller = await this.sellerMiddleware(sellerId, userId);
+
     if (!isSeller)
       throw new BadRequestException(
         `Unauthorized! Seller ID does not match the user ID.`,
