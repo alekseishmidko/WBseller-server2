@@ -8,13 +8,25 @@ import { PrismaService } from 'src/prisma.service';
 import { SellersService } from 'src/sellers/sellers.service';
 import { CreateReportDto } from './dto/create-report.dto';
 import axios from 'axios';
+import {
+  countSalesBySAName,
+  filterArrByParams,
+  totalService,
+  tradesTableService,
+} from 'src/utils/report.helper';
+import { GoodsService } from 'src/goods/goods.service';
 
 @Injectable()
 export class ReportsService {
   constructor(
     private prisma: PrismaService,
     private sellersService: SellersService,
+    private goodsService: GoodsService,
   ) {}
+
+  wbUrlGenerator(dateTo: string, dateFrom: string) {
+    return `https://statistics-api.wildberries.ru/api/v5/supplier/reportDetailByPeriod?dateFrom=${dateFrom}&dateTo=${dateTo}`;
+  }
 
   async getAllSellerReports(req: Request, userId: string) {
     const sellerId = req.query.sellerId as string;
@@ -81,9 +93,7 @@ export class ReportsService {
   }
   async createReport(req: Request, userId: string, dto: CreateReportDto) {
     const sellerId = req.query.sellerId as string;
-    const dateTo = dto.dateTo;
-    const dateFrom = dto.dateFrom;
-    const url = `https://statistics-api.wildberries.ru/api/v5/supplier/reportDetailByPeriod?dateFrom=${dateFrom}&dateTo=${dateTo}`;
+    const url = this.wbUrlGenerator(dto.dateTo, dto.dateFrom);
 
     const isSeller = await this.sellersService.sellerMiddleware(
       sellerId,
@@ -95,23 +105,275 @@ export class ReportsService {
       );
     const isExistReport = await this.getReportByDate(
       sellerId,
-      dateFrom,
-      dateTo,
+      dto.dateFrom,
+      dto.dateTo,
     );
     if (isExistReport)
       throw new BadRequestException(
         'You already have a report for this period!',
       );
     const seller = await this.sellersService.getSellerById(sellerId);
-    const wbtokenFromService = seller.sellerWBtoken;
     const sellerPercentOfFee = seller.taxingPercent;
 
     const response = await axios.get(url, {
-      headers: { Authorization: wbtokenFromService },
+      headers: {
+        Authorization: `Bearer ${seller.sellerWBtoken}`,
+      },
     });
 
     const resData = response.data;
     if (!resData) throw new BadGatewayException('WB API is disabled');
-    return resData;
+
+    // сохранение репорта
+    const allSalesBeforeFee = filterArrByParams(
+      resData,
+      'Продажа',
+      'doc_type_name',
+      'supplier_oper_name',
+    ); //
+
+    // const allReturnsBeforeFee = resData.filter((item) => {
+    const allReturnsBeforeFee = filterArrByParams(
+      resData,
+      'Возврат',
+      'doc_type_name',
+      'supplier_oper_name',
+    ); //
+
+    const returnsSpecial = filterArrByParams(
+      resData,
+      'Возврат',
+      'doc_type_name',
+    );
+    // 3
+    const allReturnsBeforeFeeTotalPrice = totalService(
+      allReturnsBeforeFee,
+      'retail_price_withdisc_rub',
+    );
+    // 4 Количество возвратов
+    const allReturnsBeforeFeeLength = allReturnsBeforeFee.length;
+    // =2 количество продаж
+    const allSalesBeforeFeeLength = allSalesBeforeFee.length;
+
+    // =1 (сумма продаж до уплаты налогов, издержек и тд ... оборот)
+    const allSalesBeforeFeeTotalPrice = allSalesBeforeFee.reduce(
+      (sum, item) => {
+        return sum + item.retail_price_withdisc_rub;
+      },
+      0,
+    );
+
+    const allSalesAfterFee = totalService(allSalesBeforeFee, 'ppvz_for_pay'); // 5
+
+    const allReturnsAfterFee = totalService(
+      allReturnsBeforeFee,
+      'ppvz_for_pay',
+    ); // =6
+
+    //  =7 (( 1 - 3 ) - ( 5 - 6 ))
+    const comission =
+      allSalesBeforeFeeTotalPrice -
+      allReturnsBeforeFeeTotalPrice -
+      (allSalesAfterFee - allReturnsAfterFee);
+
+    const paymentOfDefectedGoodsArr = filterArrByParams(
+      resData,
+      'Оплата брака',
+      'supplier_oper_name',
+    );
+
+    const paymentOfDefectedGoods = totalService(
+      paymentOfDefectedGoodsArr,
+      'ppvz_for_pay',
+    ); // =9
+
+    const quantityOfDefectiveGoods = paymentOfDefectedGoodsArr.length; // =10
+
+    const paymentOfLostGoodsArr = filterArrByParams(
+      resData,
+      'Оплата потерянного товара',
+      'supplier_oper_name',
+    );
+
+    const paymentOfLostGoods = totalService(
+      paymentOfLostGoodsArr,
+      'ppvz_for_pay',
+    ); // =11
+
+    const quantityOfLostGoods = paymentOfLostGoodsArr.length; // =12
+    // компенсация подмененного товара
+    const compensationSubstitutedGoodsArr = filterArrByParams(
+      resData,
+      'Компенсация подмененного товара',
+      'supplier_oper_name',
+    );
+
+    const compensationSubstitutedGoods = totalService(
+      compensationSubstitutedGoodsArr,
+      'ppvz_for_pay',
+    ); // =13
+
+    const quantityOfSubstitutedGoods = compensationSubstitutedGoodsArr.length; // =14
+
+    const compensationOfTransportationCostsArr = filterArrByParams(
+      resData,
+      'Возмещение издержек по перевозке',
+      'supplier_oper_name',
+    );
+
+    const compensationOfTransportationCosts = totalService(
+      compensationOfTransportationCostsArr,
+      'ppvz_for_pay',
+    ); // 15
+
+    const compensationOfTransportationCostsAmount =
+      compensationOfTransportationCostsArr.length; //16
+
+    const stornoOfTradesArr = filterArrByParams(
+      resData,
+      'Сторно продаж',
+      'supplier_oper_name',
+    );
+
+    const stornoOfTrades = totalService(stornoOfTradesArr, 'ppvz_for_pay'); // =17
+
+    const quantityOfStornoOfTrades = stornoOfTradesArr.length;
+    const correctTradesArr = filterArrByParams(
+      resData,
+      'Корректная продажа',
+      'supplier_oper_name',
+    ); // =18
+
+    const correctTrades = totalService(correctTradesArr, 'ppvz_for_pay'); // =19
+
+    const quantityOfCorrectTrades = correctTradesArr.length; // =20
+    //
+    const stornoOfReturnsArr = filterArrByParams(
+      resData,
+      'Сторно возвратов',
+      'supplier_oper_name',
+    );
+
+    const stornoOfReturns = totalService(stornoOfReturnsArr, 'ppvz_for_pay'); // =21
+
+    const stornoOfReturnsAmount = stornoOfReturnsArr.length; //22
+    const correctOfReturnsArr = filterArrByParams(
+      resData,
+      'Корректный возврат',
+      'supplier_oper_name',
+    );
+
+    const correctOfReturns = totalService(correctOfReturnsArr, 'ppvz_for_pay'); // =23
+
+    const correctOfReturnsAmount = correctOfReturnsArr.length; // =24
+
+    const totalCorrect =
+      correctTrades - stornoOfTrades + stornoOfReturns - correctOfReturns; // =25  ( 19-17+21-23)
+    // =8 процент комиссии (7+25)/1
+    const percentOfComission =
+      (Number(comission) /
+        //  + Number(totalCorrect)
+        Number(allSalesBeforeFeeTotalPrice)) *
+      100; // возможно стоит убрать totalCorrect ???
+
+    const totalRetailAmountFromSales =
+      resData
+        .filter((item) => {
+          return item.doc_type_name === 'Продажа';
+        })
+        .reduce((sum, item) => {
+          return sum + item.retail_amount;
+        }, 0) -
+      +returnsSpecial.reduce((sum, item) => sum + item.retail_amount, 0); // =27 (расчет 27 из таблицы -returnsSpecial сумма по retail_amount )
+
+    const transferForTrades =
+      allSalesAfterFee - allReturnsAfterFee + totalCorrect; // =28  (5-6+25)
+
+    const logisticsArr = resData.filter((item) => {
+      return item.delivery_amount > 0;
+    });
+
+    const logistics = totalService(logisticsArr, 'delivery_rub'); // = 29
+
+    const quantityTotalLogistics = totalService(
+      logisticsArr,
+      'delivery_amount',
+    ); // =30
+
+    const returnLogisticsArr = resData.filter((item) => {
+      return item.return_amount > 0;
+    });
+
+    const returnLogistics = totalService(returnLogisticsArr, 'delivery_rub'); // =31
+    // =32
+    // const quantityRetornLogistics = totalService(logisticsArr, "return_amount");
+
+    const totalLogistics = logistics + returnLogistics;
+    const totalPenaltyArr = filterArrByParams(
+      resData,
+      'Штрафы',
+      'supplier_oper_name',
+    ); // =33 (29 + 31)
+
+    const totalLogisticsCount = logisticsArr.length + returnLogisticsArr.length; // 34 totalLogisticsCount
+
+    const totalPenalty = totalService(totalPenaltyArr, 'penalty');
+    const additionalPaymentArr = filterArrByParams(
+      resData,
+      'Доплаты',
+      'supplier_oper_name',
+    ); // =35
+    const totalAdditionalPayment = totalService(
+      additionalPaymentArr,
+      'additional_payment',
+    ); // =36
+
+    const keeping = totalService(resData, 'storage_fee'); // 37 +++
+    const paymentEnter = totalService(resData, 'acceptance'); // 38 +++
+    const otherDed = totalService(resData, 'deduction'); // 39 +++
+
+    const toBePaid =
+      +transferForTrades -
+      +totalLogistics -
+      +totalPenalty -
+      +totalAdditionalPayment -
+      keeping -
+      paymentEnter -
+      otherDed; //  =40 (28-33-35-36-37-38-39)
+
+    //  какой артику и сколько продано
+    const countSalesBySaArray = countSalesBySAName(resData);
+    //процент выкупа ( число продаж / число продаж и возвратов) allSalesBeforeFeeLength / allSalesBeforeFeeLength+   allReturnsBeforeFeeLength
+    const percentOfBuyBack =
+      (allSalesBeforeFeeLength / allSalesBeforeFeeLength +
+        allReturnsBeforeFeeLength) *
+        100 || 0;
+
+    // общее число продаж(вместе с возвратами)
+    const totalSalesAndReturnsLength =
+      Number(allSalesBeforeFeeLength) + Number(allReturnsBeforeFeeLength);
+
+    // RESPONSE
+    const salesArr = resData.filter((item) => item.doc_type_name === 'Продажа'); // специальный массив продаж
+
+    const allGoods = await this.goodsService.getAllUserGoods(sellerId);
+    const storageFee = +totalService(resData, 'storage_fee').toFixed(2); // +++
+    const deduction = +totalService(resData, 'deduction').toFixed(2); // +++
+    const acceptance = +totalService(resData, 'acceptance').toFixed(2); // +++
+
+    const countSalesBySA = tradesTableService(
+      countSalesBySaArray,
+      salesArr,
+      allReturnsBeforeFee,
+      paymentOfDefectedGoodsArr,
+      logisticsArr,
+      returnLogisticsArr,
+      sellerPercentOfFee,
+      paymentOfLostGoodsArr,
+      compensationSubstitutedGoodsArr,
+      compensationOfTransportationCostsArr,
+      returnsSpecial,
+      allGoods,
+    );
   }
 }

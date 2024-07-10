@@ -28,8 +28,7 @@ export class GoodsService {
     });
   }
 
-  async getAllUserGoods(req: Request) {
-    const sellerId = req.query.sellerId as string;
+  async getAllUserGoods(sellerId: string) {
     const allGoods = await this.prisma.good.findMany({ where: { sellerId } });
     if (!allGoods) throw new BadRequestException('Dont find a goods!');
 
