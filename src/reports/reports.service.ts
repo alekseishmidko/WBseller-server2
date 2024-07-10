@@ -15,6 +15,8 @@ import {
   tradesTableService,
 } from 'src/utils/report.helper';
 import { GoodsService } from 'src/goods/goods.service';
+import { WbApiResSingle } from 'src/types/report.types';
+import { Report } from '@prisma/client';
 
 @Injectable()
 export class ReportsService {
@@ -115,7 +117,7 @@ export class ReportsService {
     const seller = await this.sellersService.getSellerById(sellerId);
     const sellerPercentOfFee = seller.taxingPercent;
 
-    const response = await axios.get(url, {
+    const response = await axios.get<WbApiResSingle[]>(url, {
       headers: {
         Authorization: `Bearer ${seller.sellerWBtoken}`,
       },
@@ -343,6 +345,7 @@ export class ReportsService {
 
     //  какой артику и сколько продано
     const countSalesBySaArray = countSalesBySAName(resData);
+
     //процент выкупа ( число продаж / число продаж и возвратов) allSalesBeforeFeeLength / allSalesBeforeFeeLength+   allReturnsBeforeFeeLength
     const percentOfBuyBack =
       (allSalesBeforeFeeLength / allSalesBeforeFeeLength +
@@ -375,5 +378,66 @@ export class ReportsService {
       returnsSpecial,
       allGoods,
     );
+
+    const newReport = {
+      sellerId: sellerId,
+      dateTo: dto.dateTo,
+      dateFrom: dto.dateFrom,
+      realizationreport_id: String(resData[0].realizationreport_id),
+      allSalesBeforeFeeTotalPrice: +allSalesBeforeFeeTotalPrice.toFixed(2), //1
+      allSalesBeforeFeeLength, //2
+      allReturnsBeforeFeeTotalPrice: +allReturnsBeforeFeeTotalPrice.toFixed(2), //3
+      allReturnsBeforeFeeLength, //4
+      allSalesAfterFee: +allSalesAfterFee.toFixed(2), //5
+      allReturnsAfterFee: +allReturnsAfterFee.toFixed(2), //6
+      comission: +comission.toFixed(2), //7
+      percentOfComission: +percentOfComission.toFixed(2), //8
+      paymentOfDefectedGoods: +paymentOfDefectedGoods.toFixed(2), //9
+      quantityOfDefectiveGoods, // 10
+      paymentOfLostGoods: +paymentOfLostGoods.toFixed(2), // 11
+      quantityOfLostGoods, //  12
+      compensationSubstitutedGoods: +compensationSubstitutedGoods.toFixed(2), //13
+      quantityOfSubstitutedGoods, //14
+      compensationOfTransportationCosts:
+        +compensationOfTransportationCosts.toFixed(2), //15
+      compensationOfTransportationCostsAmount, //16
+      stornoOfTrades: +stornoOfTrades.toFixed(2), //17
+      quantityOfStornoOfTrades, // 18
+      correctTrades: +correctTrades.toFixed(2), //19
+      quantityOfCorrectTrades, //20
+      stornoOfReturns: +stornoOfReturns.toFixed(2), //21
+      stornoOfReturnsAmount, //22
+      correctOfReturns: +correctOfReturns.toFixed(2), //23
+      correctOfReturnsAmount, //24
+      totalCorrect: +totalCorrect.toFixed(2), //25
+      totalRetailAmountFromSales: +totalRetailAmountFromSales.toFixed(2), //27
+      transferForTrades: +transferForTrades.toFixed(2), //28
+      logistics: +logistics.toFixed(2), //29
+      returnLogistics: +returnLogistics.toFixed(2), //31
+      // totalLogistics: +totalLogistics.toFixed(2), //33
+      totalLogisticsCount: totalLogisticsCount, // 34
+      totalPenalty: +totalPenalty.toFixed(2), //35
+      totalAdditionalPayment: +totalAdditionalPayment.toFixed(2), //36
+      totalKeeping: storageFee, // 37
+      paidAcceptance: acceptance, // 38
+      otherDeductions: deduction, // 39
+      toBePaid: +toBePaid.toFixed(2), //40 (без вычета 37, 38, 39)
+      percentOfBuyBack: +percentOfBuyBack.toFixed(2),
+      totalSalesAndReturnsLength,
+      downloadLink: 'downloadURL',
+    };
+
+    const report = await this.prisma.report.create({
+      data: {
+        ...newReport,
+        countSalesBySA: {
+          create: { ...countSalesBySA },
+        },
+      },
+      include: {
+        countSalesBySA: true,
+      },
+    });
+    return report;
   }
 }

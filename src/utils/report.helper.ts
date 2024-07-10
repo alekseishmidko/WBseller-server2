@@ -1,7 +1,12 @@
-import { WbApiRes } from 'src/types/report.types';
+import { Good } from '@prisma/client';
+import {
+  countSalesBySANameSingle,
+  SaArraySingle,
+  WbApiResSingle,
+} from 'src/types/report.types';
 
 export const filterArrByParams = (
-  arr: WbApiRes,
+  arr: WbApiResSingle[],
   searchString: string,
   param1: string,
   param2?: string,
@@ -20,7 +25,7 @@ export const filterArrByParams = (
   return [];
 };
 
-export const totalService = (arr: WbApiRes, field: string) => {
+export const totalService = (arr: WbApiResSingle[], field: string) => {
   if (!arr || !field) return '';
   if (arr && field) {
     return arr.reduce((sum, item) => {
@@ -29,7 +34,7 @@ export const totalService = (arr: WbApiRes, field: string) => {
   }
 };
 
-export function countSalesBySAName(data: WbApiRes) {
+export function countSalesBySAName(data: WbApiResSingle[]): SaArraySingle[] {
   const salesCountMap = new Map();
 
   data.forEach((item) => {
@@ -78,19 +83,19 @@ export function countSalesBySAName(data: WbApiRes) {
 // }
 
 export const tradesTableService = (
-  saNameArray,
-  salesArray,
-  returnsArray,
-  defectedGoodsArr,
-  logisticsArr,
-  returnLogisticsArr,
-  percentOfSellerFee,
-  paymentOfLostGoodsArr,
-  compensationSubstitutedGoodsArr,
-  compensationOfTransportationCostsArr,
-  returnsSpecial,
-  allGoods,
-) => {
+  saNameArray: SaArraySingle[],
+  salesArray: WbApiResSingle[],
+  returnsArray: WbApiResSingle[],
+  defectedGoodsArr: WbApiResSingle[],
+  logisticsArr: WbApiResSingle[],
+  returnLogisticsArr: WbApiResSingle[],
+  percentOfSellerFee: number,
+  paymentOfLostGoodsArr: WbApiResSingle[],
+  compensationSubstitutedGoodsArr: WbApiResSingle[],
+  compensationOfTransportationCostsArr: WbApiResSingle[],
+  returnsSpecial: WbApiResSingle[],
+  allGoods: Good[],
+): countSalesBySANameSingle[] => {
   // 1 salesArray = salesArr ,2 returnsArray = allReturnsBeforeFee,
   // 3 defectedGoodsArr = paymentOfDefectedGoodsArr,4 logisticsArr = logisticsArr,
   // 5 returnLogisticsArr = returnLogisticsArr, 6 percentOfSellerFee =sellerPercentOfFee
@@ -174,7 +179,6 @@ export const tradesTableService = (
   // old part
   // return result
 
-  //
   // new part
   const unitsWithSelfPrice = [...result].map((sale) => {
     const foundItem = [...allGoods].find(

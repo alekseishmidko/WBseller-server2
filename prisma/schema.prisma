@@ -155,3 +155,5 @@ model CountSalesBySASchema {
   Report                                 Report? @relation(fields: [reportId], references: [id])
   reportId                               String? @db.ObjectId
 }
+
+ 

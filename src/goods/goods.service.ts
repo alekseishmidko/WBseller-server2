@@ -7,6 +7,7 @@ import { Request } from 'express';
 import { PrismaService } from 'src/prisma.service';
 import { CreateGoodsDto } from './dto/create-goods.dto';
 import { UpdateGoodsDto } from './dto/update-goods.dto';
+import { Good } from '@prisma/client';
 
 @Injectable()
 export class GoodsService {
@@ -17,7 +18,7 @@ export class GoodsService {
     });
   }
 
-  async create(dto: CreateGoodsDto, sellerId: string) {
+  async create(dto: CreateGoodsDto, sellerId: string): Promise<Good> {
     return this.prisma.good.create({
       data: {
         sellerId,
@@ -28,7 +29,7 @@ export class GoodsService {
     });
   }
 
-  async getAllUserGoods(sellerId: string) {
+  async getAllUserGoods(sellerId: string): Promise<Good[]> {
     const allGoods = await this.prisma.good.findMany({ where: { sellerId } });
     if (!allGoods) throw new BadRequestException('Dont find a goods!');
 

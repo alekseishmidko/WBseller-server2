@@ -70,4 +70,27 @@ export type WbApiResSingle = {
   report_type: number;
 };
 
-export type WbApiRes = WbApiResSingle[];
+export type SaArraySingle = {
+  sa_name: string;
+  ts_name: string;
+  nm_id: number;
+};
+
+export type countSalesBySANameSingle = {
+  nm_id: number;
+  sa_name: string;
+  ts_name: string;
+  totalSales: number;
+  totalSalesCount: number;
+  returnsTotalPrice: number;
+  returnsCount: number;
+  logisticsTotalPrice: number;
+  returnLogisticsTotalPrice: number;
+  feeTotalPrice: number;
+  defectedGoodsTotalPrice: number;
+  defectedGoodsCount: number;
+  lostGoodsTotalPrice: number;
+  substitutedGoodsTotalPrice: number;
+  compensationOfTransportationTotalPrice: number;
+  price: number;
+};
