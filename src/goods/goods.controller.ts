@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UsePipes,
   ValidationPipe,
@@ -23,8 +24,8 @@ export class GoodsController {
 
   @Get()
   @Auth()
-  async getAllUserGoods(@Req() req: Request) {
-    return this.goodsService.getAllUserGoods(req);
+  async getAllUserGoods(@Query('sellerId') query: string) {
+    return this.goodsService.getAllUserGoods(query);
   }
 
   @Post()

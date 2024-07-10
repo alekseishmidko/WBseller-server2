@@ -16,6 +16,9 @@ export class AuthService {
   REFRESH_TOKEN_NAME = 'refreshToken';
   maxAge = 7 * 24 * 60 * 60 * 1000;
   secret = process.env.JWT_SECRET;
+  ACCESS_TOKEN_EXPIRES_IN = '7d';
+  REFRESH_TOKEN_EXPIRES_IN = '30d';
+  CLIENT_DOMAIN = process.env.CLIENT_DOMAIN ?? 'localhost';
   constructor(
     private jwt: JwtService,
     private usersService: UsersService,
@@ -24,11 +27,11 @@ export class AuthService {
   generateToken(userId: string) {
     const data = { id: userId };
     const accessToken = this.jwt.sign(data, {
-      expiresIn: '2h',
+      expiresIn: this.ACCESS_TOKEN_EXPIRES_IN,
       secret: this.secret,
     });
     const refreshToken = this.jwt.sign(data, {
-      expiresIn: '7d',
+      expiresIn: this.REFRESH_TOKEN_EXPIRES_IN,
       secret: this.secret,
     });
     return { accessToken, refreshToken };
@@ -37,7 +40,7 @@ export class AuthService {
     res.cookie(this.REFRESH_TOKEN_NAME, refreshToken, {
       maxAge: this.maxAge,
       httpOnly: true,
-      // domain: CLIENT_DOMAIN,
+      // domain: this.CLIENT_DOMAIN,
       //     secure: true, // secure if production
       //     sameSite: 'none', //lax if production
     });
@@ -79,7 +82,7 @@ export class AuthService {
 
     return { userData };
   }
-  async register(dto: AuthDto, res: Response) {  
+  async register(dto: AuthDto, res: Response) {
     const existedUser = await this.usersService.getUserByEmail(dto.email);
     if (existedUser) throw new BadRequestException('email is exiting yet!');
     const user = await this.usersService.createUser(dto);

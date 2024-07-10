@@ -6,6 +6,7 @@ import { SellersService } from 'src/sellers/sellers.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { getJwtConfig } from 'src/config/jwt.config';
+import { GoodsModule } from 'src/goods/goods.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { getJwtConfig } from 'src/config/jwt.config';
       inject: [ConfigService],
       useFactory: getJwtConfig,
     }),
+    GoodsModule,
   ],
   controllers: [ReportsController],
   providers: [ReportsService, PrismaService, SellersService],
