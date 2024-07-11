@@ -16,7 +16,6 @@ export class SellersService {
   ) {}
 
   async sellerMiddleware(sellerId: string, userId: string) {
-    // const sellerId = req.query.sellerId as string; // || req.params;
     const seller = await this.getSellerById(sellerId);
     if (!seller) return false;
     if (seller.userId !== userId) return false;

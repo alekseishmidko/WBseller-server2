@@ -87,7 +87,7 @@ model Report {
   seller                                  Seller                 @relation(fields: [sellerId], references: [id])
   sellerId                                String                 @db.ObjectId
   id                                      String                 @id @default(auto()) @map("_id") @db.ObjectId
-  realizationreport_id                    String
+  realizationreport_id                    Int
   dateFrom                                String
   dateTo                                  String
   allSalesBeforeFeeTotalPrice             Int //1
@@ -131,10 +131,10 @@ model Report {
   percentOfBuyBack                        Int
   totalSalesAndReturnsLength              Int
   downloadLink                            String
-  countSalesBySA                          CountSalesBySASchema[]
+  countSalesBySA                          CountSalesBySA[]
 }
 
-model CountSalesBySASchema {
+model CountSalesBySA {
   id                                     String  @id @default(auto()) @map("_id") @db.ObjectId
   nm_id                                  Int
   sa_name                                String
@@ -152,7 +152,7 @@ model CountSalesBySASchema {
   lostGoodsTotalPrice                    Int
   substitutedGoodsTotalPrice             Int
   compensationOfTransportationTotalPrice Int
-  Report                                 Report? @relation(fields: [reportId], references: [id])
+  Report                                 Report? @relation(fields: [reportId], references: [id], onDelete: Cascade)
   reportId                               String? @db.ObjectId
 }
 
