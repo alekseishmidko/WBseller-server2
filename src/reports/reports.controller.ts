@@ -6,6 +6,7 @@ import {
   HttpCode,
   Param,
   Post,
+  Query,
   Req,
 } from '@nestjs/common';
 import { ReportsService } from './reports.service';
@@ -31,10 +32,12 @@ export class ReportsController {
   @Auth()
   async getOneReport(
     @Param('id') id: string,
-    @Req() req: Request,
-    @CurrentUser('id') userId: string,
+    // @Req() req: Request,
+    @Query('sellerId') sellerId: string,
+    @CurrentUser('id')
+    userId: string,
   ) {
-    return this.reportsService.getOneReport(id, req, userId);
+    return this.reportsService.getOneReport(id, sellerId, userId);
   }
 
   @Delete(':id')
@@ -42,10 +45,10 @@ export class ReportsController {
   @Auth()
   async deleteReport(
     @Param('id') id: string,
-    @Req() req: Request,
+    @Query('sellerId') sellerId: string,
     @CurrentUser('id') userId: string,
   ) {
-    return this.reportsService.deleteReport(id, req, userId);
+    return this.reportsService.deleteReport(id, sellerId, userId);
   }
 
   @Post()

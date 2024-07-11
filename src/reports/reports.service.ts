@@ -16,7 +16,6 @@ import {
 } from 'src/utils/report.helper';
 import { GoodsService } from 'src/goods/goods.service';
 import { WbApiResSingle } from 'src/types/report.types';
-import { Report } from '@prisma/client';
 
 @Injectable()
 export class ReportsService {
@@ -54,8 +53,13 @@ export class ReportsService {
     return { allReports, totalPages };
   }
 
-  async getOneReport(id: string, req: Request, userId: string) {
-    const sellerId = req.query.sellerId as string;
+  async getSalesBySa(reportId: string) {
+    const salesBySa = await this.prisma.countSalesBySA.findMany({
+      where: { reportId },
+    });
+    return salesBySa;
+  }
+  async getOneReport(id: string, sellerId: string, userId: string) {
     const isSeller = await this.sellersService.sellerMiddleware(
       sellerId,
       userId,
@@ -67,12 +71,11 @@ export class ReportsService {
 
     const report = await this.prisma.report.findUnique({ where: { id } });
     if (!report) throw new BadRequestException('Dont find a report!');
-
-    return report;
+    const salesBySa = await this.getSalesBySa(report.id);
+    return { ...report, salesBySa };
   }
 
-  async deleteReport(id: string, req: Request, userId: string) {
-    const sellerId = req.query.sellerId as string;
+  async deleteReport(id: string, sellerId: string, userId: string) {
     const isSeller = await this.sellersService.sellerMiddleware(
       sellerId,
       userId,
@@ -297,10 +300,10 @@ export class ReportsService {
 
     const logistics = totalService(logisticsArr, 'delivery_rub'); // = 29
 
-    const quantityTotalLogistics = totalService(
-      logisticsArr,
-      'delivery_amount',
-    ); // =30
+    // const quantityTotalLogistics = totalService(
+    //   logisticsArr,
+    //   'delivery_amount',
+    // ); // =30
 
     const returnLogisticsArr = resData.filter((item) => {
       return item.return_amount > 0;
@@ -383,7 +386,7 @@ export class ReportsService {
       sellerId: sellerId,
       dateTo: dto.dateTo,
       dateFrom: dto.dateFrom,
-      realizationreport_id: String(resData[0].realizationreport_id),
+      realizationreport_id: resData[0].realizationreport_id,
       allSalesBeforeFeeTotalPrice: +allSalesBeforeFeeTotalPrice.toFixed(2), //1
       allSalesBeforeFeeLength, //2
       allReturnsBeforeFeeTotalPrice: +allReturnsBeforeFeeTotalPrice.toFixed(2), //3
