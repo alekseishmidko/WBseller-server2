@@ -7,6 +7,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { getJwtConfig } from 'src/config/jwt.config';
 import { GoodsModule } from 'src/goods/goods.module';
+import { FirebaseModule } from 'src/utils/firebase/firebase.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { GoodsModule } from 'src/goods/goods.module';
       useFactory: getJwtConfig,
     }),
     GoodsModule,
+    FirebaseModule,
   ],
   controllers: [ReportsController],
   providers: [ReportsService, PrismaService, SellersService],

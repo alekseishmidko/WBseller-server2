@@ -2,5 +2,5 @@
 /users (кроме activate)
 /auth (кроме logout)
 /seller +
-/reports ()
-создание репорта = написать сохранение в облако, напмсать типы countSalesBySA, написать сохранение в бд
+/reports (delete +, create+,)
+создание репорта = getone, 

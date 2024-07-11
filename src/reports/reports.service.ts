@@ -1,6 +1,7 @@
 import {
   BadGatewayException,
   BadRequestException,
+  Inject,
   Injectable,
 } from '@nestjs/common';
 import { Request } from 'express';
@@ -16,13 +17,21 @@ import {
 } from 'src/utils/report.helper';
 import { GoodsService } from 'src/goods/goods.service';
 import { WbApiResSingle } from 'src/types/report.types';
-
+import { transformArrayToExcel } from 'src/utils/arrayToExcel';
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  FirebaseStorage,
+} from 'firebase/storage';
 @Injectable()
 export class ReportsService {
   constructor(
     private prisma: PrismaService,
     private sellersService: SellersService,
     private goodsService: GoodsService,
+    @Inject('FIREBASE_STORAGE')
+    private readonly firebaseStorage: FirebaseStorage,
   ) {}
 
   wbUrlGenerator(dateTo: string, dateFrom: string) {
@@ -130,6 +139,13 @@ export class ReportsService {
     if (!resData) throw new BadGatewayException('WB API is disabled');
 
     // сохранение репорта
+    const buffer = await transformArrayToExcel([...resData]);
+    // //  Сохранение буфера в хранилище Firebase
+    const name = `reportId=${resData[0].realizationreport_id}$sellerId=${sellerId}$dateFrom=${dto.dateFrom}$dateTo=${dto.dateTo}.xlsx`;
+    const fileRef = ref(this.firebaseStorage, name);
+    await uploadBytes(fileRef, buffer);
+    const downloadURL = await getDownloadURL(fileRef);
+    //
     const allSalesBeforeFee = filterArrByParams(
       resData,
       'Продажа',
@@ -427,14 +443,14 @@ export class ReportsService {
       toBePaid: +toBePaid.toFixed(2), //40 (без вычета 37, 38, 39)
       percentOfBuyBack: +percentOfBuyBack.toFixed(2),
       totalSalesAndReturnsLength,
-      downloadLink: 'downloadURL',
+      downloadLink: downloadURL,
     };
 
     const report = await this.prisma.report.create({
       data: {
         ...newReport,
         countSalesBySA: {
-          create: { ...countSalesBySA },
+          create: [...countSalesBySA],
         },
       },
       include: {
