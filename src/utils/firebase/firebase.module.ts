@@ -1,30 +1,32 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { initializeApp } from 'firebase/app';
-import { getStorage } from 'firebase/storage';
-
+import { FirebaseStorage, getStorage } from 'firebase/storage';
+@Global()
 @Module({
   imports: [ConfigModule],
+  providers: [
+    {
+      provide: 'FIREBASE_STORAGE',
+      useFactory: (configService: ConfigService): FirebaseStorage => {
+        const firebaseConfig = {
+          apiKey: configService.get<string>('firebase_apiKey'),
+          authDomain: configService.get<string>('firebase_authDomain'),
+          projectId: configService.get<string>('firebase_projectId'),
+          storageBucket: configService.get<string>('firebase_storageBucket'),
+          messagingSenderId: configService.get<string>(
+            'firebase_messagingSenderId',
+          ),
+          appId: configService.get<string>('firebase_appId'),
+          measurementId: configService.get<string>('firebase_measurementId'),
+        };
+
+        const firebaseApp = initializeApp(firebaseConfig);
+        return getStorage(firebaseApp);
+      },
+      inject: [ConfigService],
+    },
+  ],
+  exports: ['FIREBASE_STORAGE'],
 })
-export class FirebaseModule {
-  constructor(private readonly configService: ConfigService) {}
-
-  configureFirebase() {
-    const firebaseConfig = {
-      apiKey: this.configService.get<string>('FIREBASE_API_KEY'),
-      authDomain: this.configService.get<string>('FIREBASE_AUTH_DOMAIN'),
-      projectId: this.configService.get<string>('FIREBASE_PROJECT_ID'),
-      storageBucket: this.configService.get<string>('FIREBASE_STORAGE_BUCKET'),
-      messagingSenderId: this.configService.get<string>(
-        'FIREBASE_MESSAGING_SENDER_ID',
-      ),
-      appId: this.configService.get<string>('FIREBASE_APP_ID'),
-      measurementId: this.configService.get<string>('FIREBASE_MEASUREMENT_ID'),
-    };
-
-    const firebaseApp = initializeApp(firebaseConfig);
-    const firebaseStorage = getStorage(firebaseApp);
-
-    return { firebaseApp, firebaseStorage };
-  }
-}
+export class FirebaseModule {}

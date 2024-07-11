@@ -32,7 +32,6 @@ export class ReportsController {
   @Auth()
   async getOneReport(
     @Param('id') id: string,
-    // @Req() req: Request,
     @Query('sellerId') sellerId: string,
     @CurrentUser('id')
     userId: string,
