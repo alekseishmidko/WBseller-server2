@@ -2,5 +2,6 @@
 /users (кроме activate)
 /auth (кроме logout)
 /seller +
-/reports (delete +, create+,)
-создание репорта = getone, 
+/reports (delete +, create+, getone+ , get all seller reports+)
+/goods +
+/payment +

@@ -24,8 +24,8 @@ export class GoodsController {
 
   @Get()
   @Auth()
-  async getAllUserGoods(@Query('sellerId') query: string) {
-    return this.goodsService.getAllUserGoods(query);
+  async getAllUserGoods(@Query('sellerId') sellerId: string) {
+    return this.goodsService.getAllUserGoods(sellerId);
   }
 
   @Post()

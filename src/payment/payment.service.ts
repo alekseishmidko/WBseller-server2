@@ -37,6 +37,7 @@ export class PaymentService {
     const currentTariffIndex = tariffs.find(
       (item) => item.name === userTariffName,
     ).index;
+
     return currentTariffIndex;
   };
 
@@ -101,7 +102,6 @@ export class PaymentService {
           password: process.env.YC_SECRET_KEY,
         },
       });
-
       if (data.status === 'succeeded') {
         const isPaymentExist = await this.prisma.payment.findUnique({
           where: { paymentId: dto.paymentId },
@@ -113,6 +113,7 @@ export class PaymentService {
           );
 
           const newTariff = this.determineTariffByPrice(+data.amount.value);
+
           const currentTariffIndex =
             this.determineCurrentTariffIndex(userTariff);
           if (newTariff.index > currentTariffIndex) {

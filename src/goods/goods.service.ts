@@ -69,7 +69,7 @@ export class GoodsService {
   async changePriceInGoods(dto: UpdateGoodsDto) {
     const updatedGood = await this.prisma.good.update({
       where: { id: dto.id },
-      data: { price: dto.newPrice, ts_name: dto.newTsName },
+      data: { price: dto?.newPrice, ts_name: dto?.newTsName },
     });
     if (!updatedGood) {
       throw new NotFoundException('Failed to update goods price!');
