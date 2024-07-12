@@ -53,7 +53,13 @@ export class ReportsService {
     const startIndex = (page - 1) * limit;
     const totalCount = await this.prisma.report.count({ where: { sellerId } });
     const totalPages = Math.ceil(totalCount / limit);
-    const allReports = await this.prisma.user.findMany({
+    const allReports = await this.prisma.report.findMany({
+      where: {
+        sellerId: sellerId,
+      },
+      orderBy: {
+        dateFrom: 'desc',
+      },
       skip: startIndex,
       take: limit,
     });

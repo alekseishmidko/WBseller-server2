@@ -34,7 +34,7 @@ export class PaymentController {
     return this.paymentService.createPayment(dto);
   }
 
-  @Post()
+  @Post('check')
   @Auth()
   async checkPayment(
     @Body() dto: CheckPaymentDto,
