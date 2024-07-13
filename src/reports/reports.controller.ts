@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   Param,
+  Patch,
   Post,
   Query,
   Req,
@@ -14,6 +15,7 @@ import { Auth } from 'src/auth/decorators/auth.decorator';
 import { Request } from 'express';
 import { CurrentUser } from 'src/auth/decorators/user.decorator';
 import { CreateReportDto } from './dto/create-report.dto';
+import { UpdateReportDto } from './dto/update-report.dto';
 
 @Controller('reports')
 export class ReportsController {
@@ -71,4 +73,16 @@ export class ReportsController {
   // ) {
   //   return this.reportsService.uploadReport(req, userId, dto);
   // }
+
+  @Patch(':id')
+  @HttpCode(200)
+  @Auth()
+  async addAdditionalData(
+    @Param('id') id: string,
+    @Body() dto: UpdateReportDto,
+    @CurrentUser('id') userId: string,
+    @Query('sellerId') sellerId: string,
+  ) {
+    return this.reportsService.addAdditionalData(id, dto, userId, sellerId);
+  }
 }

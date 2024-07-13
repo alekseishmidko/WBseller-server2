@@ -3,6 +3,7 @@ import {
   BadRequestException,
   Inject,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { PrismaService } from 'src/prisma.service';
@@ -25,6 +26,7 @@ import {
   FirebaseStorage,
 } from 'firebase/storage';
 import * as ExcelJS from 'exceljs';
+import { UpdateReportDto } from './dto/update-report.dto';
 @Injectable()
 export class ReportsService {
   constructor(
@@ -483,4 +485,33 @@ export class ReportsService {
   }
 
   async uploadReport() {}
+
+  async addAdditionalData(
+    id: string,
+    dto: UpdateReportDto,
+    userId: string,
+    sellerId: string,
+  ) {
+    const isSeller = await this.sellersService.sellerMiddleware(
+      sellerId,
+      userId,
+    );
+    if (!isSeller)
+      throw new BadRequestException(
+        `Unauthorized! Seller ID does not match the user ID.`,
+      );
+
+    const report = await this.prisma.report.update({
+      where: { id },
+      data: {
+        ...dto,
+      },
+    });
+
+    if (!report) {
+      throw new NotFoundException('Dont find or update a report!');
+    }
+
+    return report;
+  }
 }
