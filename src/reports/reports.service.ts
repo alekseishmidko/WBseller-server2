@@ -24,6 +24,7 @@ import {
   getDownloadURL,
   FirebaseStorage,
 } from 'firebase/storage';
+import * as ExcelJS from 'exceljs';
 @Injectable()
 export class ReportsService {
   constructor(
@@ -36,6 +37,21 @@ export class ReportsService {
 
   wbUrlGenerator(dateTo: string, dateFrom: string) {
     return `https://statistics-api.wildberries.ru/api/v5/supplier/reportDetailByPeriod?dateFrom=${dateFrom}&dateTo=${dateTo}`;
+  }
+
+  async downloadReportToFirebase(
+    buffer: ExcelJS.Buffer,
+    sellerId: string,
+    dateFrom: string,
+    dateTo: string,
+    reportId: string,
+  ) {
+    // const buffer = await transformArrayToExcel([...resData]); // сохранение репорта
+    const name = `reportId=${reportId}$sellerId=${sellerId}$dateFrom=${dateFrom}$dateTo=${dateTo}.xlsx`;
+    const fileRef = ref(this.firebaseStorage, name);
+    await uploadBytes(fileRef, buffer);
+    const downloadURL = await getDownloadURL(fileRef);
+    return downloadURL;
   }
 
   async getAllSellerReports(req: Request, userId: string) {
@@ -111,8 +127,8 @@ export class ReportsService {
     });
     return !!report;
   }
-  async createReport(req: Request, userId: string, dto: CreateReportDto) {
-    const sellerId = req.query.sellerId as string;
+  async createReport(sellerId: string, userId: string, dto: CreateReportDto) {
+    // const sellerId = req.query.sellerId as string;
     const url = this.wbUrlGenerator(dto.dateTo, dto.dateFrom);
 
     const isSeller = await this.sellersService.sellerMiddleware(
@@ -135,31 +151,31 @@ export class ReportsService {
     const seller = await this.sellersService.getSellerById(sellerId);
     const sellerPercentOfFee = seller.taxingPercent;
 
-    const response = await axios.get<WbApiResSingle[]>(url, {
+    const { data: resData } = await axios.get<WbApiResSingle[]>(url, {
       headers: {
         Authorization: `Bearer ${seller.sellerWBtoken}`,
       },
     });
-
-    const resData = response.data;
+    if (resData.length === 0)
+      throw new BadGatewayException('No data from WB API');
     if (!resData) throw new BadGatewayException('WB API is disabled');
 
-    // сохранение репорта
     const buffer = await transformArrayToExcel([...resData]);
-    // //  Сохранение буфера в хранилище Firebase
-    const name = `reportId=${resData[0].realizationreport_id}$sellerId=${sellerId}$dateFrom=${dto.dateFrom}$dateTo=${dto.dateTo}.xlsx`;
-    const fileRef = ref(this.firebaseStorage, name);
-    await uploadBytes(fileRef, buffer);
-    const downloadURL = await getDownloadURL(fileRef);
-    //
+    const reportId = resData[0].realizationreport_id.toString();
+    const downloadURL = await this.downloadReportToFirebase(
+      buffer,
+      sellerId,
+      dto.dateFrom,
+      dto.dateTo,
+      reportId,
+    );
+
     const allSalesBeforeFee = filterArrByParams(
       resData,
       'Продажа',
       'doc_type_name',
       'supplier_oper_name',
     ); //
-
-    // const allReturnsBeforeFee = resData.filter((item) => {
     const allReturnsBeforeFee = filterArrByParams(
       resData,
       'Возврат',
@@ -465,4 +481,6 @@ export class ReportsService {
     });
     return report;
   }
+
+  async uploadReport() {}
 }

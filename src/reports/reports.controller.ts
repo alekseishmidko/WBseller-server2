@@ -54,10 +54,21 @@ export class ReportsController {
   @HttpCode(200)
   @Auth()
   async createReport(
-    @Req() req: Request,
+    @Query('sellerId') sellerId: string,
     @CurrentUser('id') userId: string,
     @Body() dto: CreateReportDto,
   ) {
-    return this.reportsService.createReport(req, userId, dto);
+    return this.reportsService.createReport(sellerId, userId, dto);
   }
+
+  // @Post('upload')
+  // @HttpCode(200)
+  // @Auth()
+  // async uploadReport(
+  //   @Req() req: Request,
+  //   @CurrentUser('id') userId: string,
+  //   @Body() dto: CreateReportDto,
+  // ) {
+  //   return this.reportsService.uploadReport(req, userId, dto);
+  // }
 }
