@@ -2,6 +2,6 @@
 /users (кроме activate)
 /auth (кроме logout)
 /seller +
-/reports (delete +, create+, getone+ , get all seller reports+)
+/reports (delete +, create+, getone+ , get all seller reports+ , upload-, addAdditionalData-)
 /goods +
 /payment +
