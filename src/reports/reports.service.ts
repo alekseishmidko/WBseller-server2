@@ -60,18 +60,7 @@ export class ReportsService {
     return downloadURL;
   }
 
-  async getAllSellerReports(req: Request, userId: string) {
-    const sellerId = req.query.sellerId as string;
-    const isSeller = await this.sellersService.sellerMiddleware(
-      sellerId,
-      userId,
-    );
-    if (!isSeller)
-      throw new BadRequestException(
-        `Unauthorized! Seller ID does not match the user ID.`,
-      );
-    const page = +req.query.page || 1;
-    const limit = +req.query.limit || 10;
+  async getAllSellerReports(sellerId: string, page = 1, limit = 10) {
     const startIndex = (page - 1) * limit;
     const totalCount = await this.prisma.report.count({ where: { sellerId } });
     const totalPages = Math.ceil(totalCount / limit);
@@ -83,7 +72,7 @@ export class ReportsService {
         dateFrom: 'desc',
       },
       skip: startIndex,
-      take: limit,
+      take: +limit,
     });
 
     if (!allReports) throw new BadRequestException('Dont find a reports!');
@@ -96,16 +85,7 @@ export class ReportsService {
     });
     return salesBySa;
   }
-  async getOneReport(id: string, sellerId: string, userId: string) {
-    const isSeller = await this.sellersService.sellerMiddleware(
-      sellerId,
-      userId,
-    );
-    if (!isSeller)
-      throw new BadRequestException(
-        `Unauthorized! Seller ID does not match the user ID.`,
-      );
-
+  async getOneReport(id: string) {
     const report = await this.prisma.report.findUnique({ where: { id } });
     if (!report) throw new BadRequestException('Dont find a report!');
     const salesBySa = await this.getSalesBySa(report.id);
@@ -125,22 +105,15 @@ export class ReportsService {
     });
     return !!report;
   }
-  async createReport(sellerId: string, userId: string, dto: CreateReportDto) {
+  async createReport(sellerId: string, dto: CreateReportDto) {
     const url = this.wbUrlGenerator(dto.dateTo, dto.dateFrom);
 
-    const isSeller = await this.sellersService.sellerMiddleware(
-      sellerId,
-      userId,
-    );
-    if (!isSeller)
-      throw new BadRequestException(
-        `Unauthorized! Seller ID does not match the user ID.`,
-      );
     const isExistReport = await this.getReportByDate(
       sellerId,
       dto.dateFrom,
       dto.dateTo,
     );
+
     if (isExistReport)
       throw new BadRequestException(
         'You already have a report for this period!',
@@ -479,21 +452,7 @@ export class ReportsService {
     return report;
   }
 
-  async addAdditionalData(
-    id: string,
-    dto: UpdateReportDto,
-    userId: string,
-    sellerId: string,
-  ) {
-    const isSeller = await this.sellersService.sellerMiddleware(
-      sellerId,
-      userId,
-    );
-    if (!isSeller)
-      throw new BadRequestException(
-        `Unauthorized! Seller ID does not match the user ID.`,
-      );
-
+  async addAdditionalData(id: string, dto: UpdateReportDto) {
     const report = await this.prisma.report.update({
       where: { id },
       data: {
@@ -510,7 +469,7 @@ export class ReportsService {
 
   async uploadReport(
     req: Request,
-    userId: string,
+
     sellerId: string,
     dto: UploadReportDto,
     file: Express.Multer.File,
@@ -518,15 +477,6 @@ export class ReportsService {
     if (!file) throw new BadRequestException(`File is required!`);
     if (file.size > this.MAX_SIZE)
       throw new BadRequestException(`File size exceeds 2 MB!`);
-
-    const isSeller = await this.sellersService.sellerMiddleware(
-      sellerId,
-      userId,
-    );
-    if (!isSeller)
-      throw new BadRequestException(
-        `Unauthorized! Seller ID does not match the user ID.`,
-      );
 
     const isExistReport = await this.getReportByDate(
       sellerId,
