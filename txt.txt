@@ -2,6 +2,11 @@
 /users (кроме activate)
 /auth (кроме logout)
 /seller +
-/reports (delete +, create+, getone+ , get all seller reports+ , upload-, addAdditionalData-)
+/reports (delete +, create, getone , get all seller reports , upload, addAdditionalData)
 /goods +
 /payment +
+
+
+добавить в код @Seller
+написать гвард для баланса
+протестировать еще раз все роуты в которых были изменения

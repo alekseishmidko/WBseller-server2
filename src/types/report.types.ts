@@ -94,3 +94,7 @@ export type countSalesBySANameSingle = {
   compensationOfTransportationTotalPrice: number;
   price: number;
 };
+
+export interface RowData {
+  [key: string]: any;
+}

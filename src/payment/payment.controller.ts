@@ -36,6 +36,7 @@ export class PaymentController {
 
   @Post('check')
   @Auth()
+  @UsePipes(new ValidationPipe())
   async checkPayment(
     @Body() dto: CheckPaymentDto,
     @CurrentUser('tariff') userTariff: string,
