@@ -30,74 +30,66 @@ export class ReportsController {
 
   @Get()
   @Auth()
+  @Seller()
   async getAllSellerReports(
-    @Req() req: Request,
-    @CurrentUser('id') userId: string,
+    @Query('sellerId') sellerId: string,
+    @Query('page') page: number,
+    @Query('limit') limit: number,
   ) {
-    return this.reportsService.getAllSellerReports(req, userId);
+    return this.reportsService.getAllSellerReports(sellerId, page, limit);
   }
 
   @Get(':id')
   @Auth()
   @Seller()
-  async getOneReport(
-    @Param('id') id: string,
-    @Query('sellerId') sellerId: string,
-    @CurrentUser('id')
-    userId: string,
-  ) {
-    return this.reportsService.getOneReport(id, sellerId, userId);
+  async getOneReport(@Param('id') id: string) {
+    return this.reportsService.getOneReport(id);
   }
 
   @Delete(':id')
   @HttpCode(200)
   @Auth()
   @Seller()
-  async deleteReport(
-    @Param('id') id: string,
-    // @Query('sellerId') sellerId: string,
-    // @CurrentUser('id') userId: string,
-  ) {
+  async deleteReport(@Param('id') id: string) {
     return this.reportsService.deleteReport(id);
   }
 
   @Post()
   @HttpCode(200)
   @Auth()
+  @Seller()
   @UsePipes(new ValidationPipe())
   async createReport(
     @Query('sellerId') sellerId: string,
-    @CurrentUser('id') userId: string,
     @Body() dto: CreateReportDto,
   ) {
-    return this.reportsService.createReport(sellerId, userId, dto);
+    return this.reportsService.createReport(sellerId, dto);
   }
 
   @Patch(':id')
   @HttpCode(200)
   @Auth()
+  @Seller()
   @UsePipes(new ValidationPipe())
   async addAdditionalData(
     @Param('id') id: string,
     @Body() dto: UpdateReportDto,
-    @CurrentUser('id') userId: string,
-    @Query('sellerId') sellerId: string,
   ) {
-    return this.reportsService.addAdditionalData(id, dto, userId, sellerId);
+    return this.reportsService.addAdditionalData(id, dto);
   }
 
   @Post('upload')
   @HttpCode(200)
   @Auth()
+  @Seller()
   @UsePipes(new ValidationPipe())
   @UseInterceptors(FileInterceptor('file'))
   async uploadReport(
     @Req() req: Request,
-    @CurrentUser('id') userId: string,
     @Query('sellerId') sellerId: string,
     @Body() dto: UploadReportDto,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    return this.reportsService.uploadReport(req, userId, sellerId, dto, file);
+    return this.reportsService.uploadReport(req, sellerId, dto, file);
   }
 }

@@ -1,11 +1,12 @@
-import { IsDate, IsString } from 'class-validator';
+import { IsString } from 'class-validator';
+import { IsCustomDateString } from './custom-date-validator/custom-date.validator';
 
 export class CreateReportDto {
   @IsString()
-  @IsDate()
+  @IsCustomDateString()
   dateTo: string;
 
   @IsString()
-  @IsDate()
+  @IsCustomDateString()
   dateFrom: string;
 }
