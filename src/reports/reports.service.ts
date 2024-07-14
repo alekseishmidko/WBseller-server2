@@ -17,8 +17,8 @@ import {
   tradesTableService,
 } from 'src/utils/report.helper';
 import { GoodsService } from 'src/goods/goods.service';
-import { WbApiResSingle } from 'src/types/report.types';
-import { transformArrayToExcel } from 'src/utils/arrayToExcel';
+import { RowData, WbApiResSingle } from 'src/types/report.types';
+import { replaceKeys, transformArrayToExcel } from 'src/utils/arrayToExcel';
 import {
   ref,
   uploadBytes,
@@ -27,8 +27,12 @@ import {
 } from 'firebase/storage';
 import * as ExcelJS from 'exceljs';
 import { UpdateReportDto } from './dto/update-report.dto';
+import { UploadReportDto } from './dto/upload-report.dto';
+import { generateId } from 'src/utils/id.generator';
+import { keyMapReverse } from 'src/utils/keyMap';
 @Injectable()
 export class ReportsService {
+  MAX_SIZE = 1024 * 1024 * 2;
   constructor(
     private prisma: PrismaService,
     private sellersService: SellersService,
@@ -108,18 +112,10 @@ export class ReportsService {
     return { ...report, salesBySa };
   }
 
-  async deleteReport(id: string, sellerId: string, userId: string) {
-    const isSeller = await this.sellersService.sellerMiddleware(
-      sellerId,
-      userId,
-    );
-    if (!isSeller)
-      throw new BadRequestException(
-        `Unauthorized! Seller ID does not match the user ID.`,
-      );
-
-    const deletedReport = await this.prisma.report.delete({ where: { id } });
-    if (!deletedReport) throw new BadRequestException('Dont find a report!');
+  async deleteReport(id: string) {
+    const report = await this.prisma.report.findUnique({ where: { id } });
+    if (!report) throw new BadRequestException('Dont find a report!');
+    await this.prisma.report.delete({ where: { id } });
     return { message: 'Report is successfully deleted' };
   }
 
@@ -130,7 +126,6 @@ export class ReportsService {
     return !!report;
   }
   async createReport(sellerId: string, userId: string, dto: CreateReportDto) {
-    // const sellerId = req.query.sellerId as string;
     const url = this.wbUrlGenerator(dto.dateTo, dto.dateFrom);
 
     const isSeller = await this.sellersService.sellerMiddleware(
@@ -484,8 +479,6 @@ export class ReportsService {
     return report;
   }
 
-  async uploadReport() {}
-
   async addAdditionalData(
     id: string,
     dto: UpdateReportDto,
@@ -513,5 +506,69 @@ export class ReportsService {
     }
 
     return report;
+  }
+
+  async uploadReport(
+    req: Request,
+    userId: string,
+    sellerId: string,
+    dto: UploadReportDto,
+    file: Express.Multer.File,
+  ) {
+    if (!file) throw new BadRequestException(`File is required!`);
+    if (file.size > this.MAX_SIZE)
+      throw new BadRequestException(`File size exceeds 2 MB!`);
+
+    const isSeller = await this.sellersService.sellerMiddleware(
+      sellerId,
+      userId,
+    );
+    if (!isSeller)
+      throw new BadRequestException(
+        `Unauthorized! Seller ID does not match the user ID.`,
+      );
+
+    const isExistReport = await this.getReportByDate(
+      sellerId,
+      dto.dateFrom,
+      dto.dateTo,
+    );
+    if (isExistReport)
+      throw new BadRequestException(
+        'You already have a report for this period!',
+      );
+
+    const buffer = req.file.buffer;
+    const reportId = generateId().toString();
+    const downloadURL = await this.downloadReportToFirebase(
+      buffer,
+      sellerId,
+      dto.dateFrom,
+      dto.dateTo,
+      reportId,
+    );
+
+    const workbook = new ExcelJS.Workbook();
+
+    await workbook.xlsx.load(buffer);
+
+    const worksheet = workbook.getWorksheet('Sheet1'); // TODO на проде сделать индекс[0] workbook.worksheets[0];
+    // Получение данных из листа в виде двумерного массива
+    const sheetData = worksheet.getSheetValues();
+    const headers: string[] = sheetData[1] as string[];
+
+    // preparing an array
+    const data: RowData[] = sheetData.slice(2).map((row: any[]) => {
+      const obj: RowData = {};
+      row.forEach((value, index) => {
+        const header = headers[index];
+        if (header) {
+          obj[header] = value;
+        }
+      });
+      return obj;
+    });
+
+    const resData = replaceKeys(data, keyMapReverse);
   }
 }
