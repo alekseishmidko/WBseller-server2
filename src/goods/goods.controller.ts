@@ -8,15 +8,14 @@ import {
   Patch,
   Post,
   Query,
-  Req,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
 import { GoodsService } from './goods.service';
 import { Auth } from 'src/auth/decorators/auth.decorator';
-import { Request } from 'express';
 import { CreateGoodsDto } from './dto/create-goods.dto';
 import { UpdateGoodsDto } from './dto/update-goods.dto';
+import { Seller } from 'src/sellers/decorators/seller.decorator';
 
 @Controller('goods')
 export class GoodsController {
@@ -31,8 +30,12 @@ export class GoodsController {
   @Post()
   @UsePipes(new ValidationPipe())
   @Auth()
-  async createGoods(@Body() dto: CreateGoodsDto, @Req() req: Request) {
-    return this.goodsService.createGoods(dto, req);
+  @Seller()
+  async createGoods(
+    @Body() dto: CreateGoodsDto,
+    @Query('sellerId') sellerId: string,
+  ) {
+    return this.goodsService.createGoods(dto, sellerId);
   }
 
   @Post('many')
@@ -41,9 +44,9 @@ export class GoodsController {
   @Auth()
   async createOrUpdateManyGoods(
     @Body() dto: CreateGoodsDto[],
-    @Req() req: Request,
+    @Query('sellerId') sellerId: string,
   ) {
-    return this.goodsService.createOrUpdateManyGoods(dto, req);
+    return this.goodsService.createOrUpdateManyGoods(dto, sellerId);
   }
 
   @Patch()
