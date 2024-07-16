@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UsePipes,
   ValidationPipe,
@@ -18,6 +19,7 @@ import { CurrentUser } from 'src/auth/decorators/user.decorator';
 import { EditSellerDto } from './dto/edit-seller.dto';
 
 import { Request } from 'express';
+import { Seller } from './decorators/seller.decorator';
 
 @Controller('sellers')
 export class SellersController {
@@ -45,30 +47,25 @@ export class SellersController {
   @UsePipes(new ValidationPipe())
   async editSeller(
     @Body() dto: EditSellerDto,
-    @CurrentUser('id') userId: string,
-    @Req() req: Request,
+    @Query('sellerId') sellerId: string,
   ) {
-    return this.sellersService.editSeller(dto, userId, req);
+    return this.sellersService.editSeller(dto, sellerId);
   }
 
   @Auth()
+  @Seller()
   @Delete(':id')
-  async deleteSeller(
-    @Param('id') id: string,
-    @CurrentUser('id') userId: string,
-    @Req() req: Request,
-  ) {
-    return this.sellersService.deleteSeller(id, userId, req);
+  async deleteSeller(@Param('id') id: string) {
+    return this.sellersService.deleteSeller(id);
   }
 
   @Auth()
+  @Seller()
   @Get(':id')
   async getOneUserSeller(
     @Param('id') id: string,
-    @CurrentUser('id') userId: string,
-    @Req() req: Request,
     @CurrentUser('email') userEmail: string,
   ) {
-    return this.sellersService.getOneUserSeller(id, userId, req, userEmail);
+    return this.sellersService.getOneUserSeller(id, userEmail);
   }
 }

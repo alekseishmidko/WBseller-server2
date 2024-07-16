@@ -35,8 +35,7 @@ export class GoodsService {
 
     return allGoods;
   }
-  async createGoods(dto: CreateGoodsDto, req: Request) {
-    const sellerId = req.query.sellerId as string;
+  async createGoods(dto: CreateGoodsDto, sellerId: string) {
     const existingGood = await this.findExistingGood(dto, sellerId);
     if (existingGood)
       throw new BadRequestException(
@@ -48,9 +47,7 @@ export class GoodsService {
     return { message: 'Product is created!' };
   }
 
-  async createOrUpdateManyGoods(dto: CreateGoodsDto[], req: Request) {
-    const sellerId = req.query.sellerId as string;
-
+  async createOrUpdateManyGoods(dto: CreateGoodsDto[], sellerId: string) {
     for (const good of dto) {
       const existingGood = await this.findExistingGood(good, sellerId);
       if (existingGood) {

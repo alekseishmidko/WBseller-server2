@@ -2,12 +2,13 @@ import {
   BadGatewayException,
   BadRequestException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma.service';
 import { CreateSellerDto } from './dto/create-seller.dto';
 import { EditSellerDto } from './dto/edit-seller.dto';
-import { Request } from 'express';
+
 @Injectable()
 export class SellersService {
   constructor(
@@ -15,12 +16,6 @@ export class SellersService {
     private prisma: PrismaService,
   ) {}
 
-  async sellerMiddleware(sellerId: string, userId: string) {
-    const seller = await this.getSellerById(sellerId);
-    if (!seller) return false;
-    if (seller.userId !== userId) return false;
-    return true;
-  }
   async getSellerById(id: string) {
     return await this.prisma.seller.findUnique({ where: { id } });
   }
@@ -63,15 +58,11 @@ export class SellersService {
     return allSellers;
   }
 
-  async editSeller(dto: EditSellerDto, userId: string, req: Request) {
-    const sellerId = req.query.sellerId as string; // || req.params;
-    const isSeller = await this.sellerMiddleware(sellerId, userId);
-
-    if (!isSeller)
-      throw new BadRequestException(
-        `Unauthorized! Seller ID does not match the user ID.`,
-      );
-
+  async editSeller(dto: EditSellerDto, sellerId: string) {
+    const seller = await this.prisma.seller.findUnique({
+      where: { id: sellerId },
+    });
+    if (!seller) throw new NotFoundException('Dont find the seller!');
     const updatedSeller = await this.prisma.seller.update({
       where: { id: sellerId },
       data: { ...dto },
@@ -81,32 +72,15 @@ export class SellersService {
       throw new BadGatewayException('Failed to update seller info!');
     return { message: 'Seller is successfully updated' };
   }
-  async deleteSeller(id: string, userId: string, req: Request) {
-    const sellerId = req.query.sellerId as string; // || req.params;
-    const isSeller = await this.sellerMiddleware(sellerId, userId);
-    if (!isSeller)
-      throw new BadRequestException(
-        `Unauthorized! Seller ID does not match the user ID.`,
-      );
-
+  async deleteSeller(id: string) {
+    const seller = await this.prisma.seller.findUnique({ where: { id } });
+    if (!seller) throw new NotFoundException('Dont find the seller!');
     const deletedSeller = await this.prisma.seller.delete({ where: { id } });
     if (!deletedSeller)
       throw new BadGatewayException('Failed to delete seller!');
     return { message: 'Seller is successfully deleted!' };
   }
-  async getOneUserSeller(
-    id: string,
-    userId: string,
-    req: Request,
-    userEmail: string,
-  ) {
-    const sellerId = req.query.sellerId as string; // || req.params;
-    const isSeller = await this.sellerMiddleware(sellerId, userId);
-    if (!isSeller)
-      throw new BadRequestException(
-        `Unauthorized! Seller ID does not match the user ID.`,
-      );
-
+  async getOneUserSeller(id: string, userEmail: string) {
     const seller = await this.getSellerById(id);
     if (!seller) throw new BadRequestException('Dont find a seller!');
 

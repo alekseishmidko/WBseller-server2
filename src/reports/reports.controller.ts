@@ -17,7 +17,6 @@ import {
 import { ReportsService } from './reports.service';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { Request } from 'express';
-import { CurrentUser } from 'src/auth/decorators/user.decorator';
 import { CreateReportDto } from './dto/create-report.dto';
 import { UpdateReportDto } from './dto/update-report.dto';
 import { UploadReportDto } from './dto/upload-report.dto';
