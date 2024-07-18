@@ -58,30 +58,6 @@ export function countSalesBySAName(data: WbApiResSingle[]): SaArraySingle[] {
   return result;
 }
 
-// export function countSalesBySANameV3(data) {
-//   const salesCountMap = new Map();
-
-//   data.forEach((item) => {
-//     const { sa_name, ts_name, supplier_oper_name, nm_id } = item;
-
-//     if (supplier_oper_name === 'Продажа' && supplier_oper_name === 'продажа') {
-//       if (!salesCountMap.has(sa_name)) {
-//         salesCountMap.set(sa_name, new Set());
-//       }
-//       salesCountMap.get(sa_name).add({ ts_name, nm_id });
-//     }
-//   });
-
-//   const result = [];
-//   for (const [sa_name, ts_names] of salesCountMap) {
-//     ts_names.forEach((obj) => {
-//       result.push({ sa_name, ...obj }); // Добавление sa_name и объекта из Set, распыление свойств
-//     });
-//   }
-
-//   return result;
-// }
-
 export const tradesTableService = (
   saNameArray: SaArraySingle[],
   salesArray: WbApiResSingle[],

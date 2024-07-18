@@ -8,7 +8,6 @@ import {
   Patch,
   Post,
   Query,
-  Req,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -18,7 +17,6 @@ import { CreateSellerDto } from './dto/create-seller.dto';
 import { CurrentUser } from 'src/auth/decorators/user.decorator';
 import { EditSellerDto } from './dto/edit-seller.dto';
 
-import { Request } from 'express';
 import { Seller } from './decorators/seller.decorator';
 
 @Controller('sellers')

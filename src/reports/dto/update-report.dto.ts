@@ -1,4 +1,4 @@
-import { IsNumber, IsOptional } from 'class-validator';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class UpdateReportDto {
   @IsNumber()
@@ -12,4 +12,18 @@ export class UpdateReportDto {
   @IsNumber()
   @IsOptional()
   otherDeductions: number;
+}
+
+export class EditSelfPriceDto {
+  @IsString()
+  id: string;
+
+  @IsNumber()
+  price: number;
+
+  @IsString()
+  ts_name: string;
+
+  @IsString()
+  sa_name: string;
 }

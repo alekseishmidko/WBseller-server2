@@ -5,5 +5,3 @@ export function generateId(): number {
 
   return uniqueId;
 }
-
-const q = generateId();
