@@ -10,8 +10,8 @@ import { AuthDto } from 'src/auth/dto/auth.dto';
 import { Request } from 'express';
 import { EditUserInfoDto, EditUserPasswordDto } from './dto/edit-user.dto';
 
-import { getQuantityOfBalance } from 'src/helpers/balance/balance';
 import { PeriodType } from 'src/types/report.types';
+import { getQuantityOfBalance } from 'src/utils/balance/get-quantity-of-balance';
 @Injectable()
 export class UsersService {
   constructor(

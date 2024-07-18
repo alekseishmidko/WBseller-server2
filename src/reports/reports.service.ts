@@ -26,10 +26,11 @@ import {
   FirebaseStorage,
 } from 'firebase/storage';
 import * as ExcelJS from 'exceljs';
-import { UpdateReportDto } from './dto/update-report.dto';
+import { EditSelfPriceDto, UpdateReportDto } from './dto/update-report.dto';
 import { UploadReportDto } from './dto/upload-report.dto';
 import { generateId } from 'src/utils/id.generator';
 import { keyMapReverse } from 'src/utils/keyMap';
+import { getQuantityOfBalance } from 'src/utils/balance/get-quantity-of-balance';
 @Injectable()
 export class ReportsService {
   MAX_SIZE = 1024 * 1024 * 2;
@@ -43,6 +44,24 @@ export class ReportsService {
 
   wbUrlGenerator(dateTo: string, dateFrom: string) {
     return `https://statistics-api.wildberries.ru/api/v5/supplier/reportDetailByPeriod?dateFrom=${dateFrom}&dateTo=${dateTo}`;
+  }
+
+  determineNeededBalanceForOperation(
+    currentBalance: number,
+    dateFrom: string,
+    dateTo: string,
+  ) {
+    if (currentBalance < 1)
+      throw new BadRequestException(
+        'You dont have enough balance for this operation!',
+      );
+
+    const requiredBalanceForOperation = getQuantityOfBalance(dateFrom, dateTo);
+    if (currentBalance - requiredBalanceForOperation < 1)
+      throw new BadRequestException(
+        'You dont have enough balance for this operation!',
+      );
+    return true;
   }
 
   async downloadReportToFirebase(
@@ -105,11 +124,20 @@ export class ReportsService {
     });
     return !!report;
   }
-  async createReport(sellerId: string, dto: CreateReportDto) {
+  async createReport(
+    sellerId: string,
+    dto: CreateReportDto,
+    currentBalance: number,
+  ) {
     const url = this.wbUrlGenerator(dto.dateTo, dto.dateFrom);
 
     const isExistReport = await this.getReportByDate(
       sellerId,
+      dto.dateFrom,
+      dto.dateTo,
+    );
+    this.determineNeededBalanceForOperation(
+      currentBalance,
       dto.dateFrom,
       dto.dateTo,
     );
@@ -473,7 +501,13 @@ export class ReportsService {
     sellerId: string,
     dto: UploadReportDto,
     file: Express.Multer.File,
+    currentBalance: number,
   ) {
+    this.determineNeededBalanceForOperation(
+      currentBalance,
+      dto.dateFrom,
+      dto.dateTo,
+    );
     if (!file) throw new BadRequestException(`File is required!`);
     if (file.size > this.MAX_SIZE)
       throw new BadRequestException(`File size exceeds 2 MB!`);
@@ -520,5 +554,21 @@ export class ReportsService {
     });
 
     const resData = replaceKeys(data, keyMapReverse);
+  }
+
+  async editSelfPriceOfUnitInReport(dto: EditSelfPriceDto) {
+    const record = await this.prisma.countSalesBySA.findFirst({
+      where: { reportId: dto.id, sa_name: dto.sa_name },
+    });
+    if (!record) {
+      throw new NotFoundException('Record not found');
+    }
+
+    await this.prisma.countSalesBySA.update({
+      where: { id: record.id, sa_name: dto.sa_name },
+      data: { price: dto.price },
+    });
+
+    return { message: 'Price in report is updated' };
   }
 }
