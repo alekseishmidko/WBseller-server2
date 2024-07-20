@@ -10,6 +10,7 @@ import { GoodsModule } from 'src/goods/goods.module';
 import { FirebaseModule } from 'src/utils/firebase/firebase.module';
 import { MulterModule } from '@nestjs/platform-express';
 import * as multer from 'multer';
+import { UsersService } from 'src/users/users.service';
 
 @Module({
   imports: [
@@ -29,6 +30,6 @@ import * as multer from 'multer';
     }),
   ],
   controllers: [ReportsController],
-  providers: [ReportsService, PrismaService, SellersService],
+  providers: [ReportsService, PrismaService, SellersService, UsersService],
 })
 export class ReportsModule {}

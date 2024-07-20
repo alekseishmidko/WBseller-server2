@@ -122,7 +122,7 @@ export class PaymentService {
 
           const balanceTotalToUpdate = +balanceByPromocode + +newTariff.count;
 
-          await this.usersService.incrementUserBalance(
+          await this.usersService.updateUserBalance(
             userId,
             balanceTotalToUpdate,
           );
