@@ -31,6 +31,7 @@ import { UploadReportDto } from './dto/upload-report.dto';
 import { generateId } from 'src/utils/id.generator';
 import { keyMapReverse } from 'src/utils/keyMap';
 import { getQuantityOfBalance } from 'src/utils/balance/get-quantity-of-balance';
+import { UsersService } from 'src/users/users.service';
 @Injectable()
 export class ReportsService {
   MAX_SIZE = 1024 * 1024 * 2;
@@ -38,6 +39,7 @@ export class ReportsService {
     private prisma: PrismaService,
     private sellersService: SellersService,
     private goodsService: GoodsService,
+    private usersService: UsersService,
     @Inject('FIREBASE_STORAGE')
     private readonly firebaseStorage: FirebaseStorage,
   ) {}
@@ -128,6 +130,7 @@ export class ReportsService {
     sellerId: string,
     dto: CreateReportDto,
     currentBalance: number,
+    userId: string,
   ) {
     const url = this.wbUrlGenerator(dto.dateTo, dto.dateFrom);
 
@@ -465,7 +468,7 @@ export class ReportsService {
       totalSalesAndReturnsLength,
       downloadLink: downloadURL,
     };
-
+    const decrementBalance = getQuantityOfBalance(dto.dateFrom, dto.dateTo);
     const report = await this.prisma.report.create({
       data: {
         ...newReport,
@@ -477,6 +480,7 @@ export class ReportsService {
         countSalesBySA: true,
       },
     });
+    await this.usersService.updateUserBalance(userId, -decrementBalance);
     return report;
   }
 
@@ -502,6 +506,7 @@ export class ReportsService {
     dto: UploadReportDto,
     file: Express.Multer.File,
     currentBalance: number,
+    userId: string,
   ) {
     this.determineNeededBalanceForOperation(
       currentBalance,
@@ -554,6 +559,8 @@ export class ReportsService {
     });
 
     const resData = replaceKeys(data, keyMapReverse);
+    const decrementBalance = getQuantityOfBalance(dto.dateFrom, dto.dateTo);
+    await this.usersService.updateUserBalance(userId, -decrementBalance);
   }
 
   async editSelfPriceOfUnitInReport(dto: EditSelfPriceDto) {

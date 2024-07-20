@@ -65,8 +65,14 @@ export class ReportsController {
     @Query('sellerId') sellerId: string,
     @Body() dto: CreateReportDto,
     @CurrentUser('balance') currentBalance: number,
+    @CurrentUser('id') userId: string,
   ) {
-    return this.reportsService.createReport(sellerId, dto, currentBalance);
+    return this.reportsService.createReport(
+      sellerId,
+      dto,
+      currentBalance,
+      userId,
+    );
   }
 
   @Patch(':id')
@@ -93,6 +99,7 @@ export class ReportsController {
     @Body() dto: UploadReportDto,
     @UploadedFile() file: Express.Multer.File,
     @CurrentUser('balance') currentBalance: number,
+    @CurrentUser('id') userId: string,
   ) {
     return this.reportsService.uploadReport(
       req,
@@ -100,6 +107,7 @@ export class ReportsController {
       dto,
       file,
       currentBalance,
+      userId,
     );
   }
 

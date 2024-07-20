@@ -46,22 +46,10 @@ export class UsersService {
     return this.prisma.user.create({ data: user });
   }
 
-  async incrementUserBalance(id: string, number: number) {
+  async updateUserBalance(id: string, number: number) {
     await this.prisma.user.update({
       where: { id },
       data: { balance: { increment: number } },
-    });
-  }
-  async decrementUserBalance(
-    id: string,
-    currentBalance: number,
-    period: PeriodType,
-  ) {
-    const count = getQuantityOfBalance(period.dateFrom, period.dateTo);
-    const newBalance = currentBalance - count;
-    await this.prisma.user.update({
-      where: { id },
-      data: { balance: newBalance <= 0 ? 0 : newBalance },
     });
   }
 
