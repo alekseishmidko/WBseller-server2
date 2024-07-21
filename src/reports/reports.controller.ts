@@ -59,7 +59,6 @@ export class ReportsController {
   @HttpCode(200)
   @Auth()
   @Seller()
-  // @Balance()
   @UsePipes(new ValidationPipe())
   async createReport(
     @Query('sellerId') sellerId: string,
@@ -91,7 +90,7 @@ export class ReportsController {
   @HttpCode(200)
   @Auth()
   @Seller()
-  @UsePipes(new ValidationPipe())
+  // @UsePipes(new ValidationPipe())
   @UseInterceptors(FileInterceptor('file'))
   async uploadReport(
     @Req() req: Request,

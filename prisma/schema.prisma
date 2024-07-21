@@ -84,9 +84,9 @@ model Payment {
 }
 
 model Report {
-  seller                                  Seller                 @relation(fields: [sellerId], references: [id])
-  sellerId                                String                 @db.ObjectId
-  id                                      String                 @id @default(auto()) @map("_id") @db.ObjectId
+  seller                                  Seller @relation(fields: [sellerId], references: [id])
+  sellerId                                String @db.ObjectId
+  id                                      String @id @default(auto()) @map("_id") @db.ObjectId
   realizationreport_id                    Int
   dateFrom                                String
   dateTo                                  String
@@ -124,14 +124,14 @@ model Report {
   totalPenalty                            Int //35
   totalAdditionalPayment                  Int //36
 
-  totalKeeping                            Int //37
-  paidAcceptance                          Int //38
-  otherDeductions                         Int //39
-  toBePaid                                Int //40 (без вычета 37, 38, 39)
-  percentOfBuyBack                        Int
-  totalSalesAndReturnsLength              Int
-  downloadLink                            String
-  countSalesBySA                          CountSalesBySA[]
+  totalKeeping               Int //37
+  paidAcceptance             Int //38
+  otherDeductions            Int //39
+  toBePaid                   Int //40 (без вычета 37, 38, 39)
+  percentOfBuyBack           Int
+  totalSalesAndReturnsLength Int
+  downloadLink               String
+  countSalesBySA             CountSalesBySA[]
 }
 
 model CountSalesBySA {
@@ -156,4 +156,9 @@ model CountSalesBySA {
   reportId                               String? @db.ObjectId
 }
 
- 
+model Promo {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  name        String @unique()
+  description String
+  count       Int
+}
