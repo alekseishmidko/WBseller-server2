@@ -162,3 +162,11 @@ model Promo {
   description String
   count       Int
 }
+
+model Tariff {
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  name  String @unique()
+  count Int
+  price Int
+  index Int    @unique()
+}

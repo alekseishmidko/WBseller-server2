@@ -10,6 +10,7 @@ import { BotModule } from './bot/bot.module';
 import { PromoModule } from './promo/promo.module';
 import { FirebaseModule } from './utils/firebase/firebase.module';
 import { ReportsModule } from './reports/reports.module';
+import { TariffModule } from './tariff/tariff.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { ReportsModule } from './reports/reports.module';
     PromoModule,
     FirebaseModule,
     ReportsModule,
+    TariffModule,
   ],
 })
 export class AppModule {}
