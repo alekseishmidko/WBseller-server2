@@ -30,11 +30,11 @@ export class TariffController {
 
   @Get(':id')
   @Auth('admin')
-  findOne(@Param('id') index: string) {
+  findOne(@Param('index') index: string) {
     return this.tariffService.findOne(+index);
   }
 
-  @Patch(':id')
+  @Patch(':index')
   @Auth('admin')
   update(
     @Param('index') index: string,
@@ -43,7 +43,7 @@ export class TariffController {
     return this.tariffService.update(+index, updateTariffDto);
   }
 
-  @Delete(':id')
+  @Delete(':index')
   @Auth('admin')
   remove(@Param('index') index: string) {
     return this.tariffService.remove(+index);
