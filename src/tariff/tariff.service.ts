@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateTariffDto } from './dto/create-tariff.dto';
 import { UpdateTariffDto } from './dto/update-tariff.dto';
 import { PrismaService } from 'src/prisma.service';
@@ -12,6 +12,7 @@ export class TariffService {
         index: 'desc',
       },
     });
+    if (!lastTariff) return 0;
 
     return lastTariff.index ?? 0;
   }
@@ -23,7 +24,7 @@ export class TariffService {
         index: lastIndex + 1,
       },
     });
-
+    if (!newTariff) return new BadRequestException('Tariff already exist!');
     return newTariff;
   }
 
@@ -32,11 +33,23 @@ export class TariffService {
   }
 
   async findOne(index: number) {
-    return await this.prisma.tariff.findUnique({ where: { index } });
+    const tariff = await this.prisma.tariff.findUnique({ where: { index } });
+    if (!tariff) return new BadRequestException('Tariff dont  exist!');
+    return tariff;
   }
 
   async update(index: number, dto: UpdateTariffDto) {
-    await this.prisma.tariff.update({ where: { index }, data: { ...dto } });
+    const updatedTariff = await this.prisma.tariff.update({
+      where: {
+        index: index,
+      },
+      data: {
+        ...dto,
+        index: index,
+      },
+    });
+
+    return updatedTariff;
   }
 
   async remove(index: number) {

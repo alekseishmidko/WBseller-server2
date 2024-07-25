@@ -7,6 +7,7 @@ import { getJwtConfig } from 'src/config/jwt.config';
 import { PrismaService } from 'src/prisma.service';
 import { UsersModule } from 'src/users/users.module';
 import { UsersService } from 'src/users/users.service';
+import { TariffService } from 'src/tariff/tariff.service';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { UsersService } from 'src/users/users.service';
     }),
   ],
   controllers: [PaymentController],
-  providers: [PaymentService, PrismaService, UsersService],
+  providers: [PaymentService, PrismaService, UsersService, TariffService],
   exports: [PaymentService],
 })
 export class PaymentModule {}
