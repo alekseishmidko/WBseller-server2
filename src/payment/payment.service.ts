@@ -9,14 +9,16 @@ import { PrismaService } from 'src/prisma.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { CheckPaymentDto } from './dto/check-payment.dto';
 import { promos } from 'src/helpers/promo/promo';
-import { tariffs } from 'src/helpers/tariff/tariff';
 import { UsersService } from 'src/users/users.service';
+import { TariffService } from 'src/tariff/tariff.service';
+import { Tariff } from '@prisma/client';
 
 @Injectable()
 export class PaymentService {
   constructor(
     private prisma: PrismaService,
     private usersService: UsersService,
+    private tariffsService: TariffService,
   ) {}
 
   determineAdditionalBalance(name: string) {
@@ -27,13 +29,13 @@ export class PaymentService {
     return promo.count || 0;
   }
 
-  determineTariffByPrice(price: number) {
+  determineTariffByPrice(price: number, tariffs: Tariff[]) {
     const tariff = tariffs.find((item) => item.price === price);
 
     return tariff;
   }
 
-  determineCurrentTariffIndex = (userTariffName: string) => {
+  determineCurrentTariffIndex = (userTariffName: string, tariffs: Tariff[]) => {
     const currentTariffIndex = tariffs.find(
       (item) => item.name === userTariffName,
     ).index;
@@ -102,6 +104,7 @@ export class PaymentService {
           password: process.env.YC_SECRET_KEY,
         },
       });
+
       if (data.status === 'succeeded') {
         const isPaymentExist = await this.prisma.payment.findUnique({
           where: { paymentId: dto.paymentId },
@@ -111,11 +114,17 @@ export class PaymentService {
           const balanceByPromocode = this.determineAdditionalBalance(
             dto.promo || '',
           );
+          const tariffs = await this.tariffsService.findAll();
+          const newTariff = this.determineTariffByPrice(
+            +data.amount.value,
+            tariffs,
+          );
 
-          const newTariff = this.determineTariffByPrice(+data.amount.value);
+          const currentTariffIndex = this.determineCurrentTariffIndex(
+            userTariff,
+            tariffs,
+          );
 
-          const currentTariffIndex =
-            this.determineCurrentTariffIndex(userTariff);
           if (newTariff.index > currentTariffIndex) {
             await this.usersService.updateUserTariff(userId, newTariff.name);
           }
