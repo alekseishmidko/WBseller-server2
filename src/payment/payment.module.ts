@@ -8,6 +8,7 @@ import { PrismaService } from 'src/prisma.service';
 import { UsersModule } from 'src/users/users.module';
 import { UsersService } from 'src/users/users.service';
 import { TariffService } from 'src/tariff/tariff.service';
+import { PromoService } from 'src/promo/promo.service';
 
 @Module({
   imports: [
@@ -20,7 +21,13 @@ import { TariffService } from 'src/tariff/tariff.service';
     }),
   ],
   controllers: [PaymentController],
-  providers: [PaymentService, PrismaService, UsersService, TariffService],
+  providers: [
+    PaymentService,
+    PrismaService,
+    UsersService,
+    TariffService,
+    PromoService,
+  ],
   exports: [PaymentService],
 })
 export class PaymentModule {}

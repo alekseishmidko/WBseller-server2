@@ -8,10 +8,11 @@ import { Request } from 'express';
 import { PrismaService } from 'src/prisma.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { CheckPaymentDto } from './dto/check-payment.dto';
-import { promos } from 'src/helpers/promo/promo';
+// import { promos } from 'src/helpers/promo/promo';
 import { UsersService } from 'src/users/users.service';
 import { TariffService } from 'src/tariff/tariff.service';
-import { Tariff } from '@prisma/client';
+import { Promo, Tariff } from '@prisma/client';
+import { PromoService } from 'src/promo/promo.service';
 
 @Injectable()
 export class PaymentService {
@@ -19,9 +20,10 @@ export class PaymentService {
     private prisma: PrismaService,
     private usersService: UsersService,
     private tariffsService: TariffService,
+    private promoService: PromoService,
   ) {}
 
-  determineAdditionalBalance(name: string) {
+  determineAdditionalBalance(name: string, promos: Promo[]) {
     const promo = promos.find((item) => item.name === name);
     if (!promo) {
       return 0;
@@ -111,8 +113,10 @@ export class PaymentService {
         });
 
         if (!isPaymentExist) {
+          const promos = await this.promoService.getAll();
           const balanceByPromocode = this.determineAdditionalBalance(
             dto.promo || '',
+            promos,
           );
           const tariffs = await this.tariffsService.findAll();
           const newTariff = this.determineTariffByPrice(
