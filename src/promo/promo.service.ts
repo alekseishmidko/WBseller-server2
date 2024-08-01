@@ -5,13 +5,14 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { CreatePromoDto, PromoDto } from './dto/promo.dto';
-import { promos } from 'src/helpers/promo/promo';
+
 import { PrismaService } from 'src/prisma.service';
 
 @Injectable()
 export class PromoService {
   constructor(private readonly prisma: PrismaService) {}
   async checkPromo(dto: PromoDto) {
+    const promos = await this.getAll();
     const promo = promos.find((item) => {
       return item.name === dto.promo;
     });

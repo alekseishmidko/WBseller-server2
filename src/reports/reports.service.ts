@@ -504,37 +504,35 @@ export class ReportsService {
     req: Request,
 
     sellerId: string,
-    dto: UploadReportDto,
+    // dto: UploadReportDto,
+    dateTo: string,
+    dateFrom: string,
     file: Express.Multer.File,
     currentBalance: number,
     userId: string,
   ) {
-    this.determineNeededBalanceForOperation(
-      currentBalance,
-      dto.dateFrom,
-      dto.dateTo,
-    );
+    this.determineNeededBalanceForOperation(currentBalance, dateFrom, dateTo);
     if (!file) throw new BadRequestException(`File is required!`);
     if (file.size > this.MAX_SIZE)
       throw new BadRequestException(`File size exceeds 2 MB!`);
 
-    // const isExistReport = await this.getReportByDate(
-    //   sellerId,
-    //   dto.dateFrom,
-    //   dto.dateTo,
-    // );
-    // if (isExistReport)
-    //   throw new BadRequestException(
-    //     'You already have a report for this period!',
-    //   );
+    const isExistReport = await this.getReportByDate(
+      sellerId,
+      dateFrom,
+      dateTo,
+    );
+    if (isExistReport)
+      throw new BadRequestException(
+        'You already have a report for this period!',
+      );
 
     const buffer = req.file.buffer;
     const reportId = generateId().toString();
     const downloadURL = await this.downloadReportToFirebase(
       buffer,
       sellerId,
-      dto.dateFrom,
-      dto.dateTo,
+      dateFrom,
+      dateTo,
       reportId,
     );
 
@@ -756,9 +754,15 @@ export class ReportsService {
       'additional_payment',
     ); // =36
 
-    const keeping = totalService(resData, 'storage_fee'); // 37 +++
-    const paymentEnter = totalService(resData, 'acceptance'); // 38 +++
-    const otherDed = totalService(resData, 'deduction'); // 39 +++
+    const keeping = totalService(resData, 'storage_fee')
+      ? totalService(resData, 'storage_fee')
+      : 0; // 37 +++
+    const paymentEnter = totalService(resData, 'acceptance')
+      ? totalService(resData, 'acceptance')
+      : 0; // 38 +++
+    const otherDed = totalService(resData, 'deduction')
+      ? totalService(resData, 'deduction')
+      : 0; // 39 +++
 
     const toBePaid =
       +transferForTrades -
@@ -786,9 +790,15 @@ export class ReportsService {
     const salesArr = resData.filter((item) => item.doc_type_name === 'Продажа'); // специальный массив продаж
 
     const allGoods = await this.goodsService.getAllUserGoods(sellerId);
-    const storageFee = +totalService(resData, 'storage_fee').toFixed(2); // +++
-    const deduction = +totalService(resData, 'deduction').toFixed(2); // +++
-    const acceptance = +totalService(resData, 'acceptance').toFixed(2); // +++
+    const storageFee = +totalService(resData, 'storage_fee').toFixed(2)
+      ? +totalService(resData, 'storage_fee').toFixed(2)
+      : 0; // +++
+    const deduction = +totalService(resData, 'deduction').toFixed(2)
+      ? +totalService(resData, 'deduction').toFixed(2)
+      : 0; // +++
+    const acceptance = +totalService(resData, 'acceptance').toFixed(2)
+      ? +totalService(resData, 'acceptance').toFixed(2)
+      : 0; // +++
 
     const countSalesBySA = tradesTableService(
       countSalesBySaArray,
@@ -807,8 +817,8 @@ export class ReportsService {
 
     const newReport = {
       sellerId: sellerId,
-      dateTo: dto.dateTo,
-      dateFrom: dto.dateFrom,
+      dateTo: dateTo,
+      dateFrom: dateFrom,
       realizationreport_id: +reportId,
       allSalesBeforeFeeTotalPrice: +allSalesBeforeFeeTotalPrice.toFixed(2), //1
       allSalesBeforeFeeLength, //2
@@ -847,7 +857,7 @@ export class ReportsService {
       totalKeeping: storageFee, // 37
       paidAcceptance: acceptance, // 38
       otherDeductions: deduction, // 39
-      toBePaid: +toBePaid.toFixed(2), //40 (без вычета 37, 38, 39)
+      toBePaid: toBePaid, //40 (без вычета 37, 38, 39)
       percentOfBuyBack: +percentOfBuyBack.toFixed(2),
       totalSalesAndReturnsLength,
       downloadLink: downloadURL,
@@ -865,7 +875,8 @@ export class ReportsService {
       },
     });
 
-    const decrementBalance = getQuantityOfBalance(dto.dateFrom, dto.dateTo);
+    const decrementBalance = getQuantityOfBalance(dateFrom, dateTo);
+    // const decrementBalance = getQuantityOfBalance(dto.dateFrom, dto.dateTo);
     await this.usersService.updateUserBalance(userId, -decrementBalance);
     return report;
   }
