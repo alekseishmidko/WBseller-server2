@@ -95,7 +95,9 @@ export class ReportsController {
   async uploadReport(
     @Req() req: Request,
     @Query('sellerId') sellerId: string,
-    @Body() dto: UploadReportDto,
+    @Query('dateTo') dateTo: string,
+    @Query('dateFrom') dateFrom: string,
+    // @Body() dto: UploadReportDto,
     @UploadedFile() file: Express.Multer.File,
     @CurrentUser('balance') currentBalance: number,
     @CurrentUser('id') userId: string,
@@ -103,7 +105,10 @@ export class ReportsController {
     return this.reportsService.uploadReport(
       req,
       sellerId,
-      dto,
+      // dto,
+      dateTo,
+      dateFrom,
+
       file,
       currentBalance,
       userId,
