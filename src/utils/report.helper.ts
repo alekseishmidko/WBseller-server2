@@ -169,3 +169,121 @@ export const tradesTableService = (
   });
   return unitsWithSelfPrice;
 };
+
+export const aggregateData = (resData: WbApiResSingle[]) => {
+  const aggregated = {
+    allSalesBeforeFeeTotalPrice: 0, //1
+    allSalesBeforeFeeLength: 0, //2
+    allReturnsBeforeFeeTotalPrice: 0, //3
+    allReturnsBeforeFeeLength: 0, //4
+    allSalesAfterFee: 0, //5
+    allReturnsAfterFee: 0, //6
+    paymentOfDefectedGoods: 0, //9
+    quantityOfDefectiveGoods: 0, // 10
+    paymentOfLostGoods: 0, // 11
+    quantityOfLostGoods: 0, //  12
+    compensationSubstitutedGoods: 0, //13
+    quantityOfSubstitutedGoods: 0, //14
+    compensationOfTransportationCosts: 0, //15
+    compensationOfTransportationCostsAmount: 0, //16
+    stornoOfTrades: 0, // 17
+    quantityOfStornoOfTrades: 0, //18
+    correctTrades: 0, //19
+    quantityOfCorrectTrades: 0, //20
+    stornoOfReturns: 0, //21
+    stornoOfReturnsAmount: 0, //22
+    correctOfReturns: 0, //23
+    correctOfReturnsAmount: 0, //24
+    totalCorrect: 0, //25
+    totalRetailAmountFromSales: 0, //27
+    logistics: 0, //29
+    returnLogistics: 0, //31
+    totalLogisticsCount: 0, // 34
+    totalPenalty: 0, //35
+
+    totalAdditionalPayment: 0, //36
+    keeping: 0, //37
+    paymentEnter: 0, // 38
+    otherDed: 0, // 39
+    totalSalesAndReturnsLength: 0,
+  };
+
+  resData.forEach((item) => {
+    switch (item.doc_type_name) {
+      case 'Продажа':
+        aggregated.allSalesBeforeFeeTotalPrice +=
+          item.retail_price_withdisc_rub;
+        aggregated.allSalesAfterFee += item.ppvz_for_pay;
+        aggregated.totalRetailAmountFromSales += item.retail_amount;
+        aggregated.allSalesBeforeFeeLength++;
+        break;
+      case 'Возврат':
+        aggregated.allReturnsBeforeFeeTotalPrice +=
+          item.retail_price_withdisc_rub;
+        aggregated.allReturnsAfterFee += item.ppvz_for_pay;
+        aggregated.allReturnsBeforeFeeLength++;
+        break;
+    }
+
+    switch (item.supplier_oper_name) {
+      case 'Оплата брака':
+        aggregated.paymentOfDefectedGoods += item.ppvz_for_pay;
+        aggregated.quantityOfDefectiveGoods++;
+        break;
+      case 'Оплата потерянного товара':
+        aggregated.paymentOfLostGoods += item.ppvz_for_pay;
+        aggregated.quantityOfLostGoods++;
+        break;
+      case 'Компенсация подмененного товара':
+        aggregated.compensationSubstitutedGoods += item.ppvz_for_pay;
+        aggregated.quantityOfSubstitutedGoods++;
+        break;
+      case 'Возмещение издержек по перевозке':
+        aggregated.compensationOfTransportationCosts += item.ppvz_for_pay;
+        aggregated.compensationOfTransportationCostsAmount++;
+        break;
+      case 'Сторно продаж':
+        aggregated.stornoOfTrades += item.ppvz_for_pay;
+        aggregated.quantityOfStornoOfTrades++;
+        break;
+      case 'Корректная продажа':
+        aggregated.correctTrades += item.ppvz_for_pay;
+        aggregated.quantityOfCorrectTrades++;
+        break;
+      case 'Сторно возвратов':
+        aggregated.stornoOfReturns += item.ppvz_for_pay;
+        aggregated.stornoOfReturnsAmount++;
+        break;
+      case 'Корректный возврат':
+        aggregated.correctOfReturns += item.ppvz_for_pay;
+        aggregated.correctOfReturnsAmount++;
+        break;
+      case 'Штрафы':
+        aggregated.totalPenalty += item.penalty;
+        break;
+      case 'Доплаты':
+        aggregated.totalAdditionalPayment += item.additional_payment;
+        break;
+    }
+
+    if (item.delivery_amount > 0) {
+      aggregated.logistics += item.delivery_rub;
+    }
+
+    if (item.return_amount > 0) {
+      aggregated.returnLogistics += item.delivery_rub;
+    }
+
+    aggregated.keeping += item.storage_fee || 0;
+    aggregated.paymentEnter += item.acceptance || 0;
+    aggregated.otherDed += item.deduction || 0;
+  });
+
+  aggregated.totalCorrect =
+    aggregated.correctTrades -
+    aggregated.stornoOfTrades +
+    aggregated.stornoOfReturns -
+    aggregated.correctOfReturns; //  ( 19-17+21-23)
+
+  return aggregated;
+};
