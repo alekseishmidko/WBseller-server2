@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { BadRequestException, Module } from '@nestjs/common';
 import { ReportsService } from './reports.service';
 import { ReportsController } from './reports.controller';
 import { PrismaService } from 'src/prisma.service';
@@ -26,6 +26,25 @@ import { UsersService } from 'src/users/users.service';
       storage: multer.memoryStorage(),
       limits: {
         fileSize: 1024 * 1024 * 2,
+        files: 1,
+      },
+      fileFilter: (req, file, callback) => {
+        try {
+          if (
+            file.mimetype.includes('application/vnd.ms-excel') ||
+            file.mimetype.includes(
+              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            )
+          ) {
+            callback(null, true);
+          } else {
+            throw new BadRequestException(
+              'Only .xls and .xlsx files are allowed!',
+            );
+          }
+        } catch (error) {
+          callback(error, false);
+        }
       },
     }),
   ],
