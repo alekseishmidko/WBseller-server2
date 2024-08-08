@@ -24,7 +24,6 @@ export const transformArrayToExcel = async (data: any[]) => {
     worksheet.addRow(values);
   });
 
-  // Сохранение данных файла Excel в виде буфера
   const buffer = await workbook.xlsx.writeBuffer();
   return buffer;
 };
@@ -34,7 +33,7 @@ export const replaceKeys = (data, keyMapping) => {
   return data.map((item) => {
     const newItem = {};
     Object.keys(item).forEach((key) => {
-      const newKey = keyMapping[key] || key; // Если нет замены, используем оригинальный ключ
+      const newKey = keyMapping[key] || key;
       newItem[newKey] = item[key];
     });
     return newItem;

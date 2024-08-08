@@ -20,7 +20,7 @@ import { Auth } from 'src/auth/decorators/auth.decorator';
 import { Request } from 'express';
 import { CreateReportDto } from './dto/create-report.dto';
 import { EditSelfPriceDto, UpdateReportDto } from './dto/update-report.dto';
-import { UploadReportDto } from './dto/upload-report.dto';
+// import { UploadReportDto } from './dto/upload-report.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Seller } from 'src/sellers/decorators/seller.decorator';
 // import { Balance } from 'src/auth/decorators/balance.decorator';
@@ -103,6 +103,7 @@ export class ReportsController {
     @CurrentUser('balance') currentBalance: number,
     @CurrentUser('id') userId: string,
   ) {
+    if (!file) throw new BadRequestException(`File is required!`);
     return this.reportsService.uploadReport(
       req,
       sellerId,
