@@ -556,7 +556,6 @@ export class ReportsService {
     userId: string,
   ) {
     this.determineNeededBalanceForOperation(currentBalance, dateFrom, dateTo);
-    if (!file) throw new BadRequestException(`File is required!`);
 
     const isExistReport = await this.getReportByDate(
       sellerId,
@@ -582,12 +581,10 @@ export class ReportsService {
 
     await workbook.xlsx.load(buffer);
 
-    const worksheet = workbook.getWorksheet('Sheet1'); // TODO на проде сделать индекс[0] workbook.worksheets[0];
-    // Получение данных из листа в виде двумерного массива
+    const worksheet = workbook.getWorksheet('Sheet1'); // TODO на проде сделатьworkbook.worksheets[0];
     const sheetData = worksheet.getSheetValues();
     const headers: string[] = sheetData[1] as string[];
 
-    // preparing an array
     const data: RowData[] = sheetData.slice(2).map((row: any[]) => {
       const obj: RowData = {};
       row.forEach((value, index) => {
@@ -857,11 +854,11 @@ export class ReportsService {
       : 0; // +++
 
     const totalLogistics = logistics + returnLogistics;
-    const totalPenaltyArr = filterArrByParams(
-      resData,
-      'Штрафы',
-      'supplier_oper_name',
-    ); // =33 (29 + 31)
+    // const totalPenaltyArr = filterArrByParams(
+    //   resData,
+    //   'Штрафы',
+    //   'supplier_oper_name',
+    // ); // =33 (29 + 31)
 
     const toBePaid =
       +transferForTrades -
