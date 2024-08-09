@@ -172,8 +172,8 @@ export const tradesTableService = (
 
 export const aggregateData = (resData: WbApiResSingle[]) => {
   const aggregated = {
-    allSalesBeforeFeeTotalPrice: 0, //1
-    allSalesBeforeFeeLength: 0, //2
+    allSalesBeforeFeeTotalPrice: 0, //1 (сумма продаж до уплаты налогов, издержек и тд ... оборот)
+    allSalesBeforeFeeLength: 0, //2 количество продаж
     allReturnsBeforeFeeTotalPrice: 0, //3
     allReturnsBeforeFeeLength: 0, //4
     allSalesAfterFee: 0, //5
@@ -195,7 +195,7 @@ export const aggregateData = (resData: WbApiResSingle[]) => {
     correctOfReturns: 0, //23
     correctOfReturnsAmount: 0, //24
     totalCorrect: 0, //25
-    totalRetailAmountFromSales: 0, //27
+    totalRetailAmountFromSales: 0, //27 (расчет 27 из таблицы -returnsSpecial сумма по retail_amount )
     logistics: 0, //29
     returnLogistics: 0, //31
     totalLogisticsCount: 0, // 34
