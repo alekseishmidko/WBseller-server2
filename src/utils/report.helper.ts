@@ -170,6 +170,22 @@ export const tradesTableService = (
   return unitsWithSelfPrice;
 };
 
+export class WBApiConsts {
+  static readonly SALES = 'Продажа';
+  static readonly RETURNS = 'Возврат';
+  static readonly PAYMENT_DEFECTED_GOODS = 'Оплата брака';
+  static readonly PAYMENT_LOST_GOODS = 'Оплата потерянного товара';
+  static readonly COMPENSATION_SUBSTITUTED_GOODS =
+    'Компенсация подмененного товара';
+  static readonly COMPENSATION_TRANSPORTATION_COSTS =
+    'Возмещение издержек по перевозке';
+  static readonly STORNO_TRADES = 'Сторно продаж';
+  static readonly CORRECT_TRADES = 'Корректная продажа';
+  static readonly STORNO_RETURNS = 'Сторно возвратов';
+  static readonly CORRECT_RETURNS = 'Корректный возврат';
+  static readonly PENALTIES = 'Штрафы';
+  static readonly ADDITIONAL_PAYMENTS = 'Доплаты';
+}
 export const aggregateData = (resData: WbApiResSingle[]) => {
   const aggregated = {
     allSalesBeforeFeeTotalPrice: 0, //1 (сумма продаж до уплаты налогов, издержек и тд ... оборот)
@@ -210,14 +226,14 @@ export const aggregateData = (resData: WbApiResSingle[]) => {
 
   resData.forEach((item) => {
     switch (item.doc_type_name) {
-      case 'Продажа':
+      case WBApiConsts.SALES:
         aggregated.allSalesBeforeFeeTotalPrice +=
           item.retail_price_withdisc_rub;
         aggregated.allSalesAfterFee += item.ppvz_for_pay;
         aggregated.totalRetailAmountFromSales += item.retail_amount;
         aggregated.allSalesBeforeFeeLength++;
         break;
-      case 'Возврат':
+      case WBApiConsts.RETURNS:
         aggregated.allReturnsBeforeFeeTotalPrice +=
           item.retail_price_withdisc_rub;
         aggregated.allReturnsAfterFee += item.ppvz_for_pay;
@@ -226,42 +242,42 @@ export const aggregateData = (resData: WbApiResSingle[]) => {
     }
 
     switch (item.supplier_oper_name) {
-      case 'Оплата брака':
+      case WBApiConsts.PAYMENT_DEFECTED_GOODS:
         aggregated.paymentOfDefectedGoods += item.ppvz_for_pay;
         aggregated.quantityOfDefectiveGoods++;
         break;
-      case 'Оплата потерянного товара':
+      case WBApiConsts.PAYMENT_LOST_GOODS:
         aggregated.paymentOfLostGoods += item.ppvz_for_pay;
         aggregated.quantityOfLostGoods++;
         break;
-      case 'Компенсация подмененного товара':
+      case WBApiConsts.COMPENSATION_SUBSTITUTED_GOODS:
         aggregated.compensationSubstitutedGoods += item.ppvz_for_pay;
         aggregated.quantityOfSubstitutedGoods++;
         break;
-      case 'Возмещение издержек по перевозке':
+      case WBApiConsts.COMPENSATION_TRANSPORTATION_COSTS:
         aggregated.compensationOfTransportationCosts += item.ppvz_for_pay;
         aggregated.compensationOfTransportationCostsAmount++;
         break;
-      case 'Сторно продаж':
+      case WBApiConsts.STORNO_TRADES:
         aggregated.stornoOfTrades += item.ppvz_for_pay;
         aggregated.quantityOfStornoOfTrades++;
         break;
-      case 'Корректная продажа':
+      case WBApiConsts.CORRECT_TRADES:
         aggregated.correctTrades += item.ppvz_for_pay;
         aggregated.quantityOfCorrectTrades++;
         break;
-      case 'Сторно возвратов':
+      case WBApiConsts.STORNO_RETURNS:
         aggregated.stornoOfReturns += item.ppvz_for_pay;
         aggregated.stornoOfReturnsAmount++;
         break;
-      case 'Корректный возврат':
+      case WBApiConsts.CORRECT_RETURNS:
         aggregated.correctOfReturns += item.ppvz_for_pay;
         aggregated.correctOfReturnsAmount++;
         break;
-      case 'Штрафы':
+      case WBApiConsts.PENALTIES:
         aggregated.totalPenalty += item.penalty;
         break;
-      case 'Доплаты':
+      case WBApiConsts.ADDITIONAL_PAYMENTS:
         aggregated.totalAdditionalPayment += item.additional_payment;
         break;
     }
