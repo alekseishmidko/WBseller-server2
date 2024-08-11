@@ -16,6 +16,7 @@ import {
   filterArrByParams,
   totalService,
   tradesTableService,
+  WBApiConsts,
 } from 'src/utils/report.helper';
 import { GoodsService } from 'src/goods/goods.service';
 import { RowData, WbApiResSingle } from 'src/types/report.types';
@@ -186,7 +187,7 @@ export class ReportsService {
 
     const returnsSpecial = filterArrByParams(
       resData,
-      'Возврат',
+      WBApiConsts.RETURNS,
       'doc_type_name',
     );
     // // 3
@@ -216,7 +217,8 @@ export class ReportsService {
 
     const paymentOfDefectedGoodsArr = filterArrByParams(
       resData,
-      'Оплата брака',
+      // 'Оплата брака',
+      WBApiConsts.PAYMENT_DEFECTED_GOODS,
       'supplier_oper_name',
     );
 
@@ -229,7 +231,8 @@ export class ReportsService {
 
     const paymentOfLostGoodsArr = filterArrByParams(
       resData,
-      'Оплата потерянного товара',
+      // 'Оплата потерянного товара',
+      WBApiConsts.PAYMENT_LOST_GOODS,
       'supplier_oper_name',
     );
 
@@ -242,7 +245,7 @@ export class ReportsService {
     // // компенсация подмененного товара
     const compensationSubstitutedGoodsArr = filterArrByParams(
       resData,
-      'Компенсация подмененного товара',
+      WBApiConsts.COMPENSATION_SUBSTITUTED_GOODS,
       'supplier_oper_name',
     );
 
@@ -255,7 +258,7 @@ export class ReportsService {
 
     const compensationOfTransportationCostsArr = filterArrByParams(
       resData,
-      'Возмещение издержек по перевозке',
+      WBApiConsts.COMPENSATION_TRANSPORTATION_COSTS,
       'supplier_oper_name',
     );
 
